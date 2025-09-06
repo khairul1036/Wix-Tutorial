@@ -8,7 +8,7 @@ A simple Wix (Velo) setup for a **mega menu** where hovering over each menu item
 
 > Replace these paths with your actual images.
 
-![Mega Menu Preview](/megamenu.png)
+[![Mega Menu Preview](megamenu.png)](megamenu.png)
 
 ---
 
