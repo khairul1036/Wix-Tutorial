@@ -1,0 +1,20 @@
+import wixCrm from 'wix-crm-backend';
+
+export async function sendRequestEmailToAdmin(searchText) {
+    console.log("searchText: ", searchText)
+    try {
+        await wixCrm.emailContact(
+            "3faa3d19-872e-484a-bcb4-3287150b68bb", // your Triggered Email ID
+            "cb335f61-e2cf-4019-bae9-c6e99dff756b", // your admin contact ID
+            {
+                variables: {
+                    searchQuery: searchText
+                }
+            }
+        );
+        return "Email sent successfully";
+    } catch (err) {
+        console.error("Failed to send request email:", err);
+        throw err;
+    }
+}

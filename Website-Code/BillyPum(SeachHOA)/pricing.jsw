@@ -1,0 +1,27 @@
+// backend code
+
+import { orders } from 'wix-pricing-plans.v2';
+import wixUsers from 'wix-users-backend';
+
+export async function getUserSubscriptions() {
+    const user = wixUsers.currentUser;
+
+    if (!user.loggedIn) {
+        // console.log("user login");
+        return [];
+    }
+
+    try {
+        // login user all order
+        const response = await orders.memberListOrders();
+
+        // active order filter
+        const activeOrders = response.orders.filter(order => order.status === 'ACTIVE');
+
+        // console.log("active order:", activeOrders);
+        return activeOrders;
+    } catch (error) {
+        // console.error("no subscription:", error);
+        return [];
+    }
+}

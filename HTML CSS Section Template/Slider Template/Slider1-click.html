@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Our SPAC Initiatives</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #fff;
+      overflow-x: hidden;
+    }
+
+    .container {
+      display: flex;
+      height: 100vh;
+      transition: all 0.4s ease;
+    }
+
+    .card {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      transition: flex 0.4s ease;
+      cursor: pointer;
+      overflow: hidden;
+    }
+
+    .card .label {
+      position: absolute;
+      top: 50%;
+      right: 0;
+      writing-mode: vertical-rl;
+      transform: translateY(-50%);
+      font-size: 24px;
+      letter-spacing: 2px;
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    .card-content {
+      opacity: 0;
+      max-width: 500px;
+      text-align: left;
+      padding: 20px;
+      transition: opacity 0.4s ease;
+    }
+
+    .card-content h2 {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    .card-content p {
+      font-size: 16px;
+      margin-bottom: 20px;
+    }
+
+    .card-content button {
+      padding: 10px 20px;
+      margin-right: 10px;
+      border: none;
+      border-radius: 5px;
+      background: #fff;
+      color: #000;
+      cursor: pointer;
+    }
+
+    .card.active {
+      flex: 4;
+    }
+
+    .card.active .card-content {
+      opacity: 1;
+    }
+
+    .hospitality { background: #004C45; }
+    .sports { background: #45B5B1; }
+    .healthcare { background: #A3E6E5; color: #000; }
+
+    .close-btn {
+      position: absolute;
+      left: 20px;
+      bottom: 20px;
+      background: rgba(255, 255, 255, 0.2);
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 5px;
+      display: none;
+      cursor: pointer;
+    }
+    
+    .view-btn {
+  padding: 10px 20px;
+  margin-right: 10px;
+  border: 2px solid #fff;
+  border-radius: 5px;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.view-btn:hover {
+  background-color: #fff;
+  color: #004C45; /* or #000 if you want */
+  transform: scale(1.05);
+}
+
+
+    .card.active .close-btn {
+      display: block;
+      margin-bottom: 30px;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+      }
+
+      .card .label {
+        writing-mode: horizontal-tb;
+        top: auto;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="card hospitality active" data-name="hospitality">
+    <div class="label">Hospitality</div>
+    <div class="card-content">
+      <h2>Aeon Hospitality SPAC</h2>
+      <p>Focused on innovating hospitality experiences through strategic acquisitions and growth.</p>
+<button class="view-btn" onclick="window.open('https://google.com', '_blank')">View SPAC Page</button>
+
+    </div>
+    <button class="close-btn">← Back</button>
+  </div>
+
+  <div class="card sports" data-name="sports">
+    <div class="label">Sports</div>
+    <div class="card-content">
+      <h2>Aeon Sports SPAC</h2>
+      <p>Driving investments in sports tech, teams, and fan engagement platforms worldwide.</p>
+      <button class="view-btn" onclick="window.open('https://google.com', '_blank')">View SPAC Page</button>
+
+    </div>
+    <button class="close-btn">← Back</button>
+  </div>
+
+  <div class="card healthcare" data-name="healthcare">
+    <div class="label">Healthcare</div>
+    <div class="card-content">
+      <h2>Aeon HealthTech SPAC</h2>
+      <p>Empowering health innovation through biotech, medtech, and patient-focused platforms.</p>
+<button class="view-btn" onclick="window.open('https://google.com', '_blank')">View SPAC Page</button>
+
+    </div>
+    <button class="close-btn">← Back</button>
+  </div>
+</div>
+
+<script>
+  const cards = document.querySelectorAll('.card');
+  const closeBtns = document.querySelectorAll('.close-btn');
+
+  cards.forEach(card => {
+    card.addEventListener('click', () => {
+      if (!card.classList.contains('active')) {
+        cards.forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+      }
+    });
+  });
+
+  closeBtns.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      cards.forEach(c => c.classList.remove('active'));
+    });
+  });
+</script>
+
+</body>
+</html>
