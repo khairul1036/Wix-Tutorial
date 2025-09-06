@@ -3,6 +3,8 @@
 A simple Wix (Velo) setup for a **mega menu** where hovering over each menu item updates a **preview image** on the right. Built with **Velo events**.
 
 ---
+### [Watch on YouTube]()
+---
 
 ## Preview
 
