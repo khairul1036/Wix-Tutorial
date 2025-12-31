@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Team Slider</title>
+<style>
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: transparent;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+  }
+
+  .slider-container {
+    position: relative;
+    width: 100%;
+    max-width: 1100px;
+    overflow: hidden;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  .slider {
+    display: flex;
+    transition: transform 0.5s ease-in-out;
+    will-change: transform;
+  }
+
+  .card {
+    flex: 0 0 calc(100% / 3);
+    padding: 0 10px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .card-inner {
+    background: transparent;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .circle-bg {
+    background: #005899;
+    height: 320px;
+    width: 80%;
+    max-width: 300px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end; /* anchor to bottom */
+    border-top-left-radius: 50% 50%;
+    border-top-right-radius: 50% 50%;
+    overflow: hidden;
+    margin: 0 auto;
+  }
+
+  /* PERSON-SCALED IMAGES
+     - same visual baseline (bottom)
+     - per-image zoom via CSS variables
+   */
+  .person-img {
+    height: 280px;          /* consistent visible height frame */
+    width: auto;
+    object-fit: contain;    /* keep proportions, no distortion */
+    object-position: bottom;
+    transform-origin: bottom center;
+    transform: scale(var(--zoom, 1)) translateY(var(--shiftY, 0));
+    position: relative;
+    z-index: 2;
+    display: block;
+  }
+
+  /* Neutralize old offset hack so zoom takes over */
+  .lower-img { margin-bottom: 0; }
+
+  .info-box {
+    background: #eaeaea;
+    height: 80px;
+    width: 90%;
+    max-width: 300px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    margin: 0 auto;
+  }
+
+  .name {
+    font-weight: 900;
+    font-size: 16px;
+    color: #004f85;
+    text-transform: uppercase;
+  }
+
+  .position {
+    font-size: 10px;
+    color: #333;
+    margin-top: 5px;
+    font-weight: 700;
+  }
+
+  .arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 100px;
+    font-weight: bold;
+    background: transparent;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 20;
+    transition: 0.3s;
+  }
+
+  .arrow.left { left: 5px; }
+  .arrow.right { right: 5px; }
+
+  @media (max-width: 900px) {
+    .card { flex: 0 0 50%; padding: 0 5px; }
+    .arrow {
+      font-size: 80px;
+      width: 60px;
+      height: 60px;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .card { flex: 0 0 100%; padding: 0; }
+    .arrow { font-size: 100px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="slider-container" id="slider-container">
+  <button class="arrow left">&#8249;</button>
+  <div class="slider" id="slider"></div>
+  <button class="arrow right">&#8250;</button>
+</div>
+
+<script>
+const slides = [
+  { image: "https://static.wixstatic.com/media/fb558e_990ee2e8cfd8486493050c6d0fd1c3c2~mv2.png", text: "NABIL SHAIKH", positionText: "MARKETING DIRECTOR", lower: true },
+  { image: "https://static.wixstatic.com/media/fb558e_1bfd9ffb62524629adc748abe1bc0832~mv2.png", text: "RAUF MALIK", positionText: "SALES MANAGER" },
+  { image: "https://static.wixstatic.com/media/fb558e_e0fd1cee452e47bb9da74cb80eb156d7~mv2.png", text: "ASHIQULLAH", positionText: "AFTER SALES & SPARE PARTS", lower: true },
+  { image: "https://static.wixstatic.com/media/fb558e_a0d08c5e8bbd4eb7972d6047bfc78e60~mv2.png", text: "MUHAMMAD AZAM", positionText: "TECHNICAL SERVICES", lower: true },
+  { image: "https://static.wixstatic.com/media/fb558e_4246eccfca4949f6b98235a729f1ee7d~mv2.png", text: "AASHIR AKHTAR", positionText: "SALES ENGINEER – PIPE EXTRUSION", lower: true },
+  { image: "https://static.wixstatic.com/media/fb558e_cf7ef86fd223471a910403d28ecc2ccf~mv2.png", text: "FAIZAN HASSAN", positionText: "SALES ENGINEER – PROFILE EXTRUSION & COMPOUNDING", lower: true },
+  { image: "https://static.wixstatic.com/media/fb558e_0ae703e9ee2140e794f6b0b144e58a2f~mv2.png", text: "MAJID ZAHEER", positionText: "SALES ENGINEER - SHEET & PLATE EXTRUSION", lower: true,
+    zoom: 1.18, shiftY: "0px" },   // <-- zoom this one up
+  { image: "https://static.wixstatic.com/media/fb558e_1a3c214a0ebc446bb4466a9f685ecfb7~mv2.png", text: "GHOUS RAZA KHAN", positionText: "SALES ENGINEER - BLOW MOLDING", lower: true },
+  { image: "https://static.wixstatic.com/media/fb558e_ea2736e87a6245389a8c91284a96ce2e~mv2.png", text: "LEOWEN APAL", positionText: "CUSTOMER SERVICE", lower: true,
+    zoom: 1.22, shiftY: "0px" }    // <-- zoom this one up a bit more
+];
+
+const slider = document.getElementById("slider");
+
+// Clone first & last 3 slides for infinite loop
+const clones = [...slides.slice(-3), ...slides, ...slides.slice(0,3)];
+
+clones.forEach(s => {
+  const zoom = s.zoom ?? 1;
+  const shiftY = s.shiftY ?? "0px";
+  slider.innerHTML += `
+    <div class="card">
+      <div class="card-inner">
+        <div class="circle-bg">
+          <img
+            src="${s.image}"
+            alt="${s.text}"
+            class="person-img ${s.lower ? 'lower-img' : ''}"
+            style="--zoom:${zoom}; --shiftY:${shiftY};"
+          />
+        </div>
+        <div class="info-box">
+          <div class="name">${s.text}</div>
+          <div class="position">${s.positionText}</div>
+        </div>
+      </div>
+    </div>
+  `;
+});
+
+const cards = slider.querySelectorAll(".card");
+let index = 3; // Start after clones
+let cardWidth = cards[0].offsetWidth;
+slider.style.transform = `translateX(${-index * cardWidth}px)`;
+
+// Resize handling
+window.addEventListener("resize", () => {
+  cardWidth = cards[0].offsetWidth;
+  slider.style.transition = "none";
+  slider.style.transform = `translateX(${-index * cardWidth}px)`;
+});
+
+// Move to slide
+function goToSlide(i) {
+  slider.style.transition = "transform 0.5s ease-in-out";
+  slider.style.transform = `translateX(${-i * cardWidth}px)`;
+  index = i;
+}
+
+// Loop reset
+slider.addEventListener("transitionend", () => {
+  if (index >= slides.length + 3) {
+    slider.style.transition = "none";
+    index = 3;
+    slider.style.transform = `translateX(${-index * cardWidth}px)`;
+  }
+  if (index <= 2) {
+    slider.style.transition = "none";
+    index = slides.length + 2;
+    slider.style.transform = `translateX(${-index * cardWidth}px)`;
+  }
+});
+
+// Arrows
+document.querySelector(".arrow.right").addEventListener("click", () => goToSlide(index+1));
+document.querySelector(".arrow.left").addEventListener("click", () => goToSlide(index-1));
+
+// Drag/swipe
+let isDragging = false, startX, moveX;
+slider.parentElement.addEventListener("mousedown", e => {
+  isDragging = true;
+  startX = e.pageX;
+});
+window.addEventListener("mouseup", e => {
+  if (!isDragging) return;
+  moveX = e.pageX - startX;
+  if (moveX < -50) goToSlide(index+1);
+  else if (moveX > 50) goToSlide(index-1);
+  isDragging = false;
+});
+
+// Touch support
+slider.parentElement.addEventListener("touchstart", e => {
+  isDragging = true;
+  startX = e.touches[0].clientX;
+});
+slider.parentElement.addEventListener("touchend", e => {
+  if (!isDragging) return;
+  moveX = e.changedTouches[0].clientX - startX;
+  if (moveX < -50) goToSlide(index+1);
+  else if (moveX > 50) goToSlide(index-1);
+  isDragging = false;
+});
+</script>
+
+</body>
+</html>

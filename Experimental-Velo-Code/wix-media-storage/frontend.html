@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional File Uploader</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .uploader {
+            max-width: 600px;
+            width: 100%;
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .uploader h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #333;
+        }
+
+        input[type="file"] {
+            display: block;
+            margin-bottom: 15px;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            background: #007BFF;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+
+        button:disabled {
+            background: #aaa;
+            cursor: not-allowed;
+        }
+
+        button:hover:not(:disabled) {
+            background: #0056b3;
+        }
+
+        .progress-container {
+            width: 100%;
+            background: #eee;
+            height: 25px;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: #28a745;
+            text-align: center;
+            color: white;
+            line-height: 25px;
+            font-weight: bold;
+            transition: width 0.3s;
+        }
+
+        .files-list {
+            margin-top: 25px;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            justify-content: space-between;
+            background: #f9f9f9;
+            padding: 10px 15px;
+            border-radius: 8px;
+            transition: 0.3s;
+        }
+
+        .file-item:hover {
+            background: #eef5ff;
+        }
+
+        .file-item img {
+            max-width: 50px;
+            max-height: 50px;
+            margin-right: 12px;
+            border-radius: 5px;
+            object-fit: cover;
+        }
+
+        .file-links button {
+            margin-left: 5px;
+            background: #17a2b8;
+            font-size: 14px;
+        }
+
+        .error-msg {
+            color: red;
+            font-size: 14px;
+            margin-bottom: 10px;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="uploader">
+        <h2>Professional File Uploader</h2>
+        <div class="error-msg" id="errorMsg"></div>
+        <input type="file" id="fileInput">
+        <button id="uploadBtn">Upload</button>
+
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar">0%</div>
+        </div>
+
+        <div class="files-list" id="filesList"></div>
+    </div>
+
+    <script>
+        const uploadBtn = document.getElementById('uploadBtn');
+        const fileInput = document.getElementById('fileInput');
+        const progressBar = document.getElementById('progressBar');
+        const progressContainer = document.querySelector('.progress-container');
+        const filesList = document.getElementById('filesList');
+        const errorMsg = document.getElementById('errorMsg');
+
+        const UPLOAD_URL = 'https://khairuloffice259.wixsite.com/my-site-2/_functions/upload';
+        const GET_FILES_URL = 'https://khairuloffice259.wixsite.com/my-site-2/_functions/files';
+        const MAX_FILE_SIZE = 6 * 1024 * 1024; // 6MB
+
+        // Fetch existing files
+        async function loadFiles() {
+            filesList.innerHTML = 'Loading...';
+            try {
+                const res = await fetch(GET_FILES_URL);
+                const data = await res.json();
+                if (data.success) {
+                    filesList.innerHTML = '';
+                    data.files.forEach(file => {
+                        const item = document.createElement('div');
+                        item.className = 'file-item';
+                        item.innerHTML = `
+            <div style="display:flex; align-items:center;">
+              <img src="${file.publicUrl}" alt="${file.fileName}">
+              <span>${file.fileName}</span>
+            </div>
+            <div class="file-links">
+              <button onclick="window.open('${file.publicUrl}','_blank')">Open</button>
+            </div>
+          `;
+                        filesList.appendChild(item);
+                    });
+                }
+            } catch (err) {
+                filesList.innerHTML = 'Failed to load files';
+                console.error(err);
+            }
+        }
+
+        loadFiles();
+
+        // Upload file
+        uploadBtn.addEventListener('click', async () => {
+            const file = fileInput.files[0];
+            errorMsg.style.display = 'none';
+            if (!file) return alert('Select a file first!');
+
+            if (file.size > MAX_FILE_SIZE) {
+                errorMsg.textContent = 'File is too large. Max allowed size: 6MB.';
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            uploadBtn.disabled = true;
+            progressContainer.style.display = 'block';
+            progressBar.style.width = '0%';
+            progressBar.textContent = '0%';
+
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = async () => {
+                const base64 = reader.result;
+                try {
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('POST', UPLOAD_URL);
+                    xhr.setRequestHeader('Content-Type', 'application/json');
+
+                    xhr.upload.onprogress = (event) => {
+                        if (event.lengthComputable) {
+                            let percent = Math.floor((event.loaded / event.total) * 100);
+                            progressBar.style.width = percent + '%';
+                            progressBar.textContent = percent + '%';
+                        }
+                    };
+
+                    xhr.onload = () => {
+                        uploadBtn.disabled = false;
+                        progressBar.style.width = '100%';
+                        progressBar.textContent = 'Upload Complete';
+                        fileInput.value = '';
+                        loadFiles();
+                    };
+
+                    xhr.onerror = () => {
+                        uploadBtn.disabled = false;
+                        alert('Upload failed');
+                    };
+
+                    xhr.send(JSON.stringify({
+                        fileName: file.name,
+                        base64: base64,
+                        mimeType: file.type
+                    }));
+                } catch (err) {
+                    uploadBtn.disabled = false;
+                    alert('Upload error');
+                    console.error(err);
+                }
+            };
+        });
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Access Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 300px;
+        }
+
+        button {
+            padding: 12px 20px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 6px;
+            background-color: #007BFF;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        video {
+            margin-top: 15px;
+            width: 100%;
+            border-radius: 8px;
+        }
+
+        p.status {
+            font-size: 14px;
+            color: #333;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h2>Media Access</h2>
+        <button id="micBtn">Enable Microphone</button>
+        <button id="camBtn">Enable Camera</button>
+        <video id="video" autoplay playsinline></video>
+        <p class="status" id="status"></p>
+    </div>
+
+    <script>
+        const micBtn = document.getElementById('micBtn');
+        const camBtn = document.getElementById('camBtn');
+        const video = document.getElementById('video');
+        const status = document.getElementById('status');
+
+        // Microphone access
+        micBtn.addEventListener('click', async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                console.log('Microphone access granted', stream);
+                status.textContent = 'Microphone access granted!';
+            } catch (err) {
+                console.error('Microphone access denied', err);
+                status.textContent = 'Microphone access denied!';
+            }
+        });
+
+        // Camera + Microphone access
+        camBtn.addEventListener('click', async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                console.log('Camera + Microphone access granted', stream);
+                video.srcObject = stream;
+                status.textContent = 'Camera and microphone access granted!';
+            } catch (err) {
+                console.error('Camera access denied', err);
+                status.textContent = 'Camera or microphone access denied!';
+            }
+        });
+    </script>
+
+</body>
+
+</html>
