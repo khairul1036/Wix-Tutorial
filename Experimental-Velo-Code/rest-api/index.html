@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wix Submissions Manager</title>
+    <style>
+        /* General styles */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f6fa;
+            color: #333;
+            padding: 20px;
+            max-width: 900px;
+            margin: auto;
+        }
+
+        h1,
+        h2 {
+            color: #2f3640;
+        }
+
+        button {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .primary {
+            background: #0984e3;
+            color: white;
+        }
+
+        .danger {
+            background: #d63031;
+            color: white;
+        }
+
+        .edit {
+            background: #00b894;
+            color: white;
+        }
+
+        /* Submission list */
+        #submissionsList {
+            margin-top: 20px;
+        }
+
+        .submission {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .submission-info {
+            flex: 1;
+        }
+
+        .submission-buttons button {
+            margin-left: 5px;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .modal-content h2 {
+            margin-top: 0;
+        }
+
+        .modal-content input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .modal-content .buttons {
+            text-align: right;
+            margin-top: 10px;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 20px;
+            cursor: pointer;
+            color: #888;
+        }
+
+        /* Search */
+        #searchContainer {
+            display: flex;
+            margin-bottom: 20px;
+        }
+
+        #searchContainer input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 5px 0 0 5px;
+            border: 1px solid #ccc;
+        }
+
+        #searchContainer button {
+            border-radius: 0 5px 5px 0;
+            border: none;
+            background: #0984e3;
+            color: white;
+            padding: 10px 15px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Submissions Manager</h1>
+
+    <div id="searchContainer">
+        <input type="text" id="searchQuery" placeholder="Search by name or company">
+        <button onclick="search()">Search</button>
+    </div>
+
+    <button class="primary" onclick="openModal()">+ Add Submission</button>
+
+    <div id="submissionsList"></div>
+
+    <!-- Modal -->
+    <div class="modal" id="submissionModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle">Add Submission</h2>
+            <input type="hidden" id="submissionId">
+            <input type="text" id="name" placeholder="Name">
+            <input type="text" id="companyName" placeholder="Company Name">
+            <div class="buttons">
+                <button class="primary" onclick="saveSubmission()">Save</button>
+                <button onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const WIX_API_BASE = "https://khairuloffice259.wixsite.com/wix-stores-external/_functions/submissions";
+
+        // --- Modal Functions ---
+        function openModal(edit = false, id = '', name = '', companyName = '') {
+            document.getElementById('submissionModal').style.display = 'flex';
+            document.getElementById('modalTitle').innerText = edit ? 'Edit Submission' : 'Add Submission';
+            document.getElementById('submissionId').value = id;
+            document.getElementById('name').value = name;
+            document.getElementById('companyName').value = companyName;
+        }
+        function closeModal() {
+            document.getElementById('submissionModal').style.display = 'none';
+            clearForm();
+        }
+
+        // --- Helper fetch ---
+        async function wixFetch(url, options = {}) {
+            options.headers = { "Content-Type": "application/json", ...options.headers };
+            const res = await fetch(url, options);
+            return res.json();
+        }
+
+        // --- Load submissions ---
+        async function loadAllSubmissions() {
+            const data = await wixFetch(WIX_API_BASE, { method: "GET" });
+            const list = document.getElementById("submissionsList");
+            list.innerHTML = "";
+            if (data.items && data.items.length) {
+                data.items.forEach(item => {
+                    const div = document.createElement("div");
+                    div.className = "submission";
+                    div.innerHTML = `
+                <div class="submission-info"><strong>${item.name}</strong> (${item.companyName})</div>
+                <div class="submission-buttons">
+                    <button class="edit" onclick="openModal(true,'${item._id}','${item.name}','${item.companyName}')">Edit</button>
+                    <button class="danger" onclick="deleteSubmission('${item._id}')">Delete</button>
+                </div>
+            `;
+                    list.appendChild(div);
+                });
+            } else {
+                list.innerHTML = "<em>No submissions found.</em>";
+            }
+        }
+
+        // --- Save submission ---
+        async function saveSubmission() {
+            const id = document.getElementById("submissionId").value.trim();
+            const name = document.getElementById("name").value.trim();
+            const companyName = document.getElementById("companyName").value.trim();
+
+            if (!name || !companyName) {
+                alert("Name and Company Name are required!");
+                return;
+            }
+
+            const payload = { name, companyName };
+            let response;
+
+            if (id) {
+                response = await wixFetch(`${WIX_API_BASE}/${id}`, { method: "PUT", body: JSON.stringify(payload) });
+            } else {
+                response = await wixFetch(WIX_API_BASE, { method: "POST", body: JSON.stringify(payload) });
+            }
+
+            alert(response.success ? "Saved successfully!" : response.error);
+            closeModal();
+            loadAllSubmissions();
+        }
+
+        // --- Delete submission ---
+        async function deleteSubmission(id) {
+            if (!confirm("Are you sure you want to delete this submission?")) return;
+            const response = await wixFetch(`${WIX_API_BASE}/${id}`, { method: "DELETE" });
+            alert(response.success ? "Deleted successfully!" : response.error);
+            loadAllSubmissions();
+        }
+
+        // --- Search ---
+        async function search() {
+            const query = document.getElementById("searchQuery").value.trim();
+            if (!query) { loadAllSubmissions(); return; }
+            const response = await wixFetch(`${WIX_API_BASE}/search?query=${encodeURIComponent(query)}`, { method: "GET" });
+            const list = document.getElementById("submissionsList");
+            list.innerHTML = "";
+            if (response.items && response.items.length) {
+                response.items.forEach(item => {
+                    const div = document.createElement("div");
+                    div.className = "submission";
+                    div.innerHTML = `
+                <div class="submission-info"><strong>${item.name}</strong> (${item.companyName})</div>
+                <div class="submission-buttons">
+                    <button class="edit" onclick="openModal(true,'${item._id}','${item.name}','${item.companyName}')">Edit</button>
+                    <button class="danger" onclick="deleteSubmission('${item._id}')">Delete</button>
+                </div>
+            `;
+                    list.appendChild(div);
+                });
+            } else {
+                list.innerHTML = "<em>No results found.</em>";
+            }
+        }
+
+        // --- Clear form ---
+        function clearForm() {
+            document.getElementById("submissionId").value = "";
+            document.getElementById("name").value = "";
+            document.getElementById("companyName").value = "";
+        }
+
+        // --- Initial load ---
+        loadAllSubmissions();
+
+        // --- Close modal on outside click ---
+        window.onclick = function (event) {
+            const modal = document.getElementById("submissionModal");
+            if (event.target === modal) closeModal();
+        };
+    </script>
+
+</body>
+
+</html>

@@ -2,7 +2,7 @@
 
   Welcome to the repository for my Wix tutorials! This repository contains various code snippets, video tutorials, and other resources to help you master Wix website creation. 
 
-  ## 🚀 About the Project
+  ## 🚀 About the Repository
   This repository contains tutorials on:
   - Wix code tutorials
   - Wix Velo code snippets
