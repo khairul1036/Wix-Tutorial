@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Betopia Group | Frame Maker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Cropper.js CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
+    <style>
+        :root {
+            --primary: #f26522;
+            --secondary: #333;
+            --bg: #f8f9fa;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .app-card {
+            background: #fff;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .preview-side {
+            flex: 1;
+            min-width: 300px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .editor-side {
+            flex: 1;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        /* Cropper Container overrides */
+        .img-container {
+            width: 100%;
+            height: 400px;
+            /* Fixed height for the cropper area */
+            background-color: #f7f7f7;
+            overflow: hidden;
+            border-radius: 8px;
+            display: none;
+            /* Hidden until image uploaded */
+        }
+
+        canvas {
+            max-width: 100%;
+            height: auto !important;
+            border-radius: 8px;
+            border: 1px solid #eee;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        input {
+            padding: 12px;
+            border: 2px solid #eee;
+            border-radius: 8px;
+            outline: none;
+            transition: 0.3s;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+        }
+
+        .btn {
+            padding: 14px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+            text-align: center;
+            text-decoration: none;
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .btn-upload {
+            background: #eee;
+            color: var(--secondary);
+        }
+
+        .btn-download {
+            background: var(--primary);
+            color: white;
+            margin-top: auto;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        @media (max-width: 768px) {
+            .app-card {
+                flex-direction: column-reverse;
+                padding: 1.5rem;
+            }
+
+            .preview-side {
+                min-width: 100%;
+                margin-bottom: 1rem;
+            }
+
+            .img-container {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app-card">
+        <div class="preview-side">
+            <!-- Result Canvas (Step 2) -->
+            <canvas id="mainCanvas" width="1080" height="1080" style="display: none;"></canvas>
+
+            <!-- Cropper Image (Step 1) -->
+            <div class="img-container" id="cropperContainer">
+                <img id="imageToCrop" src="" alt="Picture" style="max-width: 100%;">
+            </div>
+
+            <!-- Placeholder View when no image -->
+            <div id="placeholderView"
+                style="text-align: center; padding: 40px; border: 2px dashed #ddd; border-radius: 8px; width: 100%; box-sizing: border-box;">
+                <p style="color: #999; margin: 0;">Preview will appear here</p>
+            </div>
+        </div>
+
+        <div class="editor-side">
+            <div style="margin-bottom: 1rem;">
+                <h1 style="margin:0; font-size: 1.5rem; color: var(--secondary);">Frame Editor</h1>
+                <p style="color: #666; font-size: 0.9rem;" id="step-indicator">Step 1: Upload Photo</p>
+            </div>
+
+            <!-- Step 1 Container -->
+            <div id="step1-panel">
+                <div class="input-group">
+                    <label>1. Select Photo</label>
+                    <input type="file" id="upload" accept="image/*">
+                </div>
+
+                <div style="margin-top: 2rem;">
+                    <button class="btn btn-download" id="goToStep2">Next: Crop & Preview &rarr;</button>
+                </div>
+            </div>
+
+            <!-- Step 2 Container -->
+            <div id="step2-panel" style="display:none;">
+                <div class="input-group">
+                    <label>2. Full Name</label>
+                    <input type="text" id="name" placeholder="Ex: John Doe">
+                </div>
+
+                <div class="input-group">
+                    <label>3. Designation</label>
+                    <input type="text" id="role" placeholder="Ex: Project Manager">
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 2rem;">
+                    <button class="btn btn-upload" id="backToStep1" style="flex:1;">&larr; Back</button>
+                    <button class="btn btn-download" id="download" style="flex:2;">Download PNG</button>
+                </div>
+                <div style="margin-top: 10px;">
+                    <button class="btn btn-upload" id="reset"
+                        style="width:100%; background: #fdf2f2; color: #d32f2f;">Start Over</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cropper.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+    <script>
+        // --- Configuration ---
+        const MAIN_SIZE = 1080;
+        const HOLE_CENTER_X = 822;
+        const HOLE_CENTER_Y = 500;
+        const HOLE_RADIUS = 265;
+        const FRAME_SRC = 'frame.png';
+
+        // --- Elements ---
+        const mainCanvas = document.getElementById('mainCanvas');
+        const mainCtx = mainCanvas.getContext('2d');
+
+        // UI Panels
+        const step1Panel = document.getElementById('step1-panel');
+        const step2Panel = document.getElementById('step2-panel');
+        const stepIndicator = document.getElementById('step-indicator');
+        const placeholderView = document.getElementById('placeholderView');
+
+        // Cropper Elements
+        const cropperContainer = document.getElementById('cropperContainer');
+        const imageToCrop = document.getElementById('imageToCrop');
+        let cropper = null;
+
+        // Inputs
+        const upload = document.getElementById('upload');
+        const nameInput = document.getElementById('name');
+        const roleInput = document.getElementById('role');
+
+        // Buttons
+        const goToStep2Btn = document.getElementById('goToStep2');
+        const backToStep1Btn = document.getElementById('backToStep1');
+        const downloadBtn = document.getElementById('download');
+        const resetBtn = document.getElementById('reset');
+
+        // State
+        let frameImg = new Image();
+        frameImg.src = FRAME_SRC;
+        let croppedResult = null; // Stores the cropped image Canvas
+
+        // --- Functions ---
+
+        function initCropper() {
+            if (cropper) {
+                cropper.destroy();
+            }
+
+            cropper = new Cropper(imageToCrop, {
+                aspectRatio: 1, // Square crop for the circular hole
+                viewMode: 1,
+                dragMode: 'move',
+                autoCropArea: 1,
+                restore: false,
+                guides: true,
+                center: true,
+                highlight: false,
+                cropBoxMovable: true,
+                cropBoxResizable: true,
+                toggleDragModeOnDblclick: false,
+            });
+        }
+
+        function renderFinal() {
+            if (!croppedResult) return;
+
+            mainCtx.clearRect(0, 0, MAIN_SIZE, MAIN_SIZE);
+
+            // 1. Draw Cropped User Image (Clipped to Circle)
+            mainCtx.save();
+            mainCtx.beginPath();
+            // The hole location on the final 1080x1080 canvas
+            mainCtx.arc(HOLE_CENTER_X, HOLE_CENTER_Y, HOLE_RADIUS, 0, Math.PI * 2);
+            mainCtx.clip();
+
+            // Draw the square cropped image to fill the circle diameter
+            // Circle Diameter = 451 * 2 = 902
+            // We draw the square image centered at the hole center
+            const destSize = HOLE_RADIUS * 1.85;
+            mainCtx.drawImage(croppedResult, HOLE_CENTER_X - HOLE_RADIUS, HOLE_CENTER_Y - HOLE_RADIUS, destSize, destSize);
+            mainCtx.restore();
+
+            // 2. Overlay Frame
+            mainCtx.drawImage(frameImg, 0, 0, MAIN_SIZE, MAIN_SIZE);
+
+            // 3. Draw Text
+            if (nameInput.value || roleInput.value) {
+                mainCtx.fillStyle = "#333333";
+                mainCtx.textAlign = "left";
+
+                mainCtx.font = "bold 32px 'Inter', sans-serif";
+                mainCtx.fillText(nameInput.value.toUpperCase(), 45, 635);
+
+                mainCtx.font = "500 24px 'Inter', sans-serif";
+                mainCtx.fillStyle = "#666";
+                mainCtx.fillText(roleInput.value, 45, 675);
+            }
+        }
+
+        // --- Events ---
+
+        upload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (f) => {
+                imageToCrop.src = f.target.result;
+
+                // Show Cropper
+                placeholderView.style.display = 'none';
+                cropperContainer.style.display = 'block';
+
+                // Delay init slightly to ensure image is ready in DOM
+                setTimeout(initCropper, 100);
+
+                stepIndicator.innerText = "Step 1: Adjust Crop Area";
+            };
+            reader.readAsDataURL(file);
+        });
+
+        goToStep2Btn.addEventListener('click', () => {
+            if (!cropper) {
+                alert("Please upload an image first.");
+                return;
+            }
+
+            // Get cropped canvas
+            croppedResult = cropper.getCroppedCanvas({
+                width: 1080, // High res output
+                height: 1280
+            });
+
+            // Switch Views
+            cropperContainer.style.display = 'none';
+            mainCanvas.style.display = 'block';
+            step1Panel.style.display = 'none';
+            step2Panel.style.display = 'block';
+
+            stepIndicator.innerText = "Step 2: Enter Details";
+
+            renderFinal();
+        });
+
+        backToStep1Btn.addEventListener('click', () => {
+            mainCanvas.style.display = 'none';
+            cropperContainer.style.display = 'block';
+            step2Panel.style.display = 'none';
+            step1Panel.style.display = 'block';
+            stepIndicator.innerText = "Step 1: Adjust Crop Area";
+
+            // Re-enable cropper layout if needed (cropper instance persists)
+            cropper.resize();
+        });
+
+        [nameInput, roleInput].forEach(el => el.addEventListener('input', renderFinal));
+
+        resetBtn.addEventListener('click', () => {
+            if (confirm("Start Over?")) {
+                window.location.reload();
+            }
+        });
+
+        downloadBtn.addEventListener('click', () => {
+            try {
+                renderFinal();
+                const link = document.createElement('a');
+                link.download = 'Betopia_NewYear_Card.png';
+                link.href = mainCanvas.toDataURL('image/png', 1.0);
+                link.click();
+            } catch (err) {
+                console.error(err);
+                alert("Download error.");
+            }
+        });
+
+    </script>
+</body>
+
+</html>
