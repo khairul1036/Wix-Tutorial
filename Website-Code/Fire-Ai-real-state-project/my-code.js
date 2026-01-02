@@ -97,10 +97,8 @@ async function handleSubmit() {
 
         // ---- Handle success ----
         if (result.success === true) {
-            const dynamicId = "35f53e7f-6cf4-4e5a-8ad1-5451f7f66a75";
-
             const redirectUrl =
-                `https://dev-sitex-1858428749.wix-development-sites.org/cleandata/${dynamicId}`;
+                `https://dev-sitex-1858428749.wix-development-sites.org/cleandata/${result.itemId}`;
 
             wixLocation.to(redirectUrl);
             return;
