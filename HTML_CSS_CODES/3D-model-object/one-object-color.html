@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Car Color Selector</title>
+
+    <!-- model-viewer library -->
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            background: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        model-viewer {
+            width: 100%;
+            max-width: 900px;
+            height: 500px;
+            background: #fff;
+        }
+
+        .color-picker {
+            margin-top: 15px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .color-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            cursor: pointer;
+            transition: transform 0.2s, border 0.2s;
+        }
+
+        .color-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .color-btn.selected {
+            border: 3px solid #000;
+        }
+    </style>
+</head>
+
+<body>
+
+    <model-viewer id="carViewer" src="https://static.wixstatic.com/3d/125856_6b3ce54fe7cc442f8d5317cac597e6c8.glb"
+        alt="3D Car Model" camera-controls auto-rotate shadow-intensity="1" exposure="1">
+    </model-viewer>
+
+    <div class="color-picker">
+        <div class="color-btn selected" style="background:red;" data-color="#ff0000"></div>
+        <div class="color-btn" style="background:blue;" data-color="#0000ff"></div>
+        <div class="color-btn" style="background:yellow;" data-color="#ffff00"></div>
+        <div class="color-btn" style="background:green;" data-color="#00ff00"></div>
+    </div>
+
+    <script type="module">
+        const viewer = document.getElementById('carViewer');
+        const buttons = document.querySelectorAll('.color-btn');
+
+        // Use your target material name
+        const TARGET_MATERIAL_NAME = 'dDodge_ChallengerSRTSuperStockRewardRecycled_2021Paint_Material1';
+
+        viewer.addEventListener('load', () => {
+            const model = viewer.model;
+            if (!model) return;
+
+            // find target material
+            let targetMat = model.materials.find(m =>
+                m.name.toLowerCase() === TARGET_MATERIAL_NAME.toLowerCase()
+            );
+
+            if (!targetMat) {
+                console.warn('Target material not found. Using first material as fallback.');
+                targetMat = model.materials[0];
+            }
+
+            buttons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const color = btn.dataset.color;
+
+                    // change material base color
+                    targetMat.pbrMetallicRoughness.setBaseColorFactor(color);
+
+                    // highlight selected button
+                    buttons.forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                });
+            });
+        });
+    </script>
+
+</body>
+
+</html>

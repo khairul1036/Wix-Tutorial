@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Car Model Selector</title>
+
+    <!-- model-viewer library -->
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            background: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        model-viewer {
+            width: 100%;
+            max-width: 900px;
+            height: 500px;
+            background: #fff;
+        }
+
+        .thumbnail-picker {
+            margin-top: 15px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .thumbnail-btn {
+            width: 100px;
+            height: 60px;
+            border: 3px solid transparent;
+            cursor: pointer;
+            transition: transform 0.2s, border 0.2s;
+            object-fit: cover;
+        }
+
+        .thumbnail-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .thumbnail-btn.selected {
+            border: 3px solid #000;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- 3D Car Viewer -->
+    <model-viewer id="carViewer" src="https://static.wixstatic.com/3d/125856_6b3ce54fe7cc442f8d5317cac597e6c8.glb"
+        alt="3D Car Model" camera-controls auto-rotate shadow-intensity="1" exposure="1">
+    </model-viewer>
+
+    <!-- Thumbnail selector -->
+    <div class="thumbnail-picker">
+        <img class="thumbnail-btn selected"
+            src="https://static.wixstatic.com/media/125856_357dae1e39594c768838ee1c9c0d0f19~mv2.png"
+            data-src="https://static.wixstatic.com/3d/125856_6b3ce54fe7cc442f8d5317cac597e6c8.glb" alt="Variant 1">
+        <img class="thumbnail-btn"
+            src="https://static.wixstatic.com/media/125856_b0a58b11887a4e5aaa12c19933fdd8d5~mv2.png"
+            data-src="https://static.wixstatic.com/3d/125856_de90e194d34047dab97bf897754d9d2b.glb" alt="Variant 2">
+
+        <img class="thumbnail-btn"
+            src="https://static.wixstatic.com/media/125856_5b4488174ca142b19ac779dfe24f5659~mv2.png"
+            data-src="https://static.wixstatic.com/3d/125856_610e298e326143e281453f1ecf49d739.glb" alt="Variant 3">
+    </div>
+
+    <script type="module">
+        const viewer = document.getElementById('carViewer');
+        const thumbnails = document.querySelectorAll('.thumbnail-btn');
+
+        thumbnails.forEach(thumbnail => {
+            thumbnail.addEventListener('click', () => {
+                const glbSrc = thumbnail.dataset.src;
+                viewer.src = glbSrc;
+
+                // Highlight selected thumbnail
+                thumbnails.forEach(t => t.classList.remove('selected'));
+                thumbnail.classList.add('selected');
+            });
+        });
+    </script>
+
+</body>
+
+</html>
