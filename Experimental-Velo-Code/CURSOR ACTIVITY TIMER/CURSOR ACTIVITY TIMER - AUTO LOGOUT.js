@@ -1,10 +1,10 @@
 <script>
 // ================================
-// CURSOR ACTIVITY TIMER + AUTO LOGOUT
-// Wix Body-End Safe
-// ================================
+    // CURSOR ACTIVITY TIMER + AUTO LOGOUT
+    // Wix Body-End Safe
+    // ================================
 
-(function() {
+    (function() {
     // Only run in browser
     if (typeof window === "undefined") return;
 
@@ -17,7 +17,7 @@
     let movingSeconds = 0;
     let stoppedSeconds = 0;
 
-    const LOCAL_KEY = "platform_app_675bbcef-18d8-41f5-800e-131ec9e08762_286b2c85-59b9-4e90-a388-3739308d71e1";
+    const LOCAL_KEY = "localKeyToClearOnIdle"; // Change to your specific key
 
     // Track full page mouse movement
     window.addEventListener("mousemove", () => {
@@ -25,33 +25,33 @@
     });
 
     // Optional: also track click/touch to reset
-    window.addEventListener("click", () => { lastMoveTime = Date.now(); });
-    window.addEventListener("touchstart", () => { lastMoveTime = Date.now(); });
+    window.addEventListener("click", () => {lastMoveTime = Date.now(); });
+    window.addEventListener("touchstart", () => {lastMoveTime = Date.now(); });
 
     // Loop to detect moving / stopped cursor
     setInterval(() => {
         const diff = Date.now() - lastMoveTime;
 
-        if (diff < CHECK_INTERVAL) {
-            // User moving
-            movingSeconds++;
-            stoppedSeconds = 0;
-            // If key was removed before and user moved again, no need to remove key
-            console.log("cursor moving:", movingSeconds + "s");
+    if (diff < CHECK_INTERVAL) {
+        // User moving
+        movingSeconds++;
+    stoppedSeconds = 0;
+    // If key was removed before and user moved again, no need to remove key
+    console.log("cursor moving:", movingSeconds + "s");
         } else {
-            // User idle
-            stoppedSeconds++;
-            movingSeconds = 0;
-            console.log("cursor stopped:", stoppedSeconds + "s");
+        // User idle
+        stoppedSeconds++;
+    movingSeconds = 0;
+    console.log("cursor stopped:", stoppedSeconds + "s");
 
             if (stoppedSeconds >= IDLE_LIMIT) {
-                console.log("⚠️ User idle 1 minute - clearing localStorage & redirecting");
+        console.log("⚠️ User idle 1 minute - clearing localStorage & redirecting");
 
-                // Remove specific localStorage key
-                localStorage.removeItem(LOCAL_KEY);
+    // Remove specific localStorage key
+    localStorage.removeItem(LOCAL_KEY);
 
-                // Redirect to home page
-                window.location.href = "/";
+    // Redirect to home page
+    window.location.href = "/";
             }
         }
     }, CHECK_INTERVAL);

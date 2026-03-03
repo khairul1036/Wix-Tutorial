@@ -1,10 +1,10 @@
 <script>
 // ================================
-// CURSOR ACTIVITY TIMER
-// Wix Body-End Safe
-// ================================
+    // CURSOR ACTIVITY TIMER
+    // Wix Body-End Safe
+    // ================================
 
-(function() {
+    (function() {
     // Only run in browser
     if (typeof window === "undefined") return;
 
@@ -24,14 +24,14 @@
     setInterval(() => {
         const diff = Date.now() - lastMoveTime;
 
-        if (diff < CHECK_INTERVAL) {
-            movingSeconds++;
-            stoppedSeconds = 0;
-            console.log("cursor moving:", movingSeconds + "s");
+    if (diff < CHECK_INTERVAL) {
+        movingSeconds++;
+    stoppedSeconds = 0;
+    console.log("cursor moving:", movingSeconds + "s");
         } else {
-            stoppedSeconds++;
-            movingSeconds = 0;
-            console.log("cursor stopped:", stoppedSeconds + "s");
+        stoppedSeconds++;
+    movingSeconds = 0;
+    console.log("cursor stopped:", stoppedSeconds + "s");
         }
     }, CHECK_INTERVAL);
 })();
