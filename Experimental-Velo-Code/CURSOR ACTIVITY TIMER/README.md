@@ -3,7 +3,7 @@
 **Markup Language:** Markdown  
 
 🎥 **Tutorial Video:**  
-https://drive.google.com/file/d/1aKqBJDQXtcixQ7digpEqtxNYLz8qDxTN/view?usp=sharing
+https://youtu.be/pz0sxP0eqwg
 
 ---
 
