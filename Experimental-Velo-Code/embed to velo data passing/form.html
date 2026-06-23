@@ -13,7 +13,8 @@
 
     <style>
         :root {
-            --bg-color: #F0F9FF; /* Very light sky blue tint */
+            --bg-color: #F0F9FF;
+            /* Very light sky blue tint */
             --card-bg: #FFFFFF;
             --primary-color: #48CAF1;
             --primary-hover: #35B3DA;
@@ -127,8 +128,15 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         h2 {
@@ -211,7 +219,7 @@
             margin-top: 5px;
         }
 
-        .was-validated :invalid ~ .error-feedback {
+        .was-validated :invalid~.error-feedback {
             display: block;
         }
 
@@ -407,6 +415,17 @@
             transform: translateY(-2px);
         }
 
+        .time-slot.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            pointer-events: none;
+            background-color: #F8FAFC !important;
+            border-color: #E2E8F0 !important;
+            color: #CBD5E1 !important;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
         /* Step 4: Waiver Info Box */
         .waiver-box {
             border: 1px solid var(--border-color);
@@ -575,7 +594,8 @@
             input[type="email"],
             select,
             textarea {
-                font-size: 16px; /* Prevents auto-zoom on iOS */
+                font-size: 16px;
+                /* Prevents auto-zoom on iOS */
                 padding: 10px 14px;
             }
 
@@ -741,7 +761,8 @@
             <h2>Choose a Date & Time</h2>
             <div class="subtitle">Select an available date, then choose your preferred time slot.</div>
 
-            <div style="border: 1px solid var(--border-color); padding: 20px; border-radius: 12px; background: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.01);">
+            <div
+                style="border: 1px solid var(--border-color); padding: 20px; border-radius: 12px; background: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.01);">
                 <div class="calendar-header">
                     <button class="calendar-btn" id="prev-month-btn" onclick="changeMonth(-1)">&lt;</button>
                     <strong id="calendar-month-year">June 2026</strong>
@@ -755,14 +776,7 @@
             <div class="time-slots-container">
                 <div class="time-slots-title" id="selected-date-title">Available times</div>
                 <div class="slots-grid" id="time-slots-grid">
-                    <div class="time-slot" onclick="selectTimeSlot(this)">12:00–12:45 PM</div>
-                    <div class="time-slot" onclick="selectTimeSlot(this)">12:50–1:35 PM</div>
-                    <div class="time-slot" onclick="selectTimeSlot(this)">1:40–2:25 PM</div>
-                    <div class="time-slot selected" onclick="selectTimeSlot(this)">2:30–3:15 PM</div>
-                    <div class="time-slot" onclick="selectTimeSlot(this)">3:20–4:05 PM</div>
-                    <div class="time-slot" onclick="selectTimeSlot(this)">4:10–4:55 PM</div>
-                    <div class="time-slot" onclick="selectTimeSlot(this)">5:00–5:45 PM</div>
-                    <div class="time-slot" onclick="selectTimeSlot(this)">5:50–6:35 PM</div>
+                    <!-- Dynamic slots rendered in JavaScript -->
                 </div>
             </div>
 
@@ -781,6 +795,7 @@
                 <button class="btn btn-back" onclick="navigateStep(2)">&lt; Back</button>
                 <button class="btn btn-next" onclick="validateAndNavigate(3, 4)">Next: Waiver &gt;</button>
             </div>
+            <div id="step3-error-message" style="margin-top: 15px; padding: 10px; border-radius: 6px; font-weight: 500; font-size: 14px; text-align: center; color: #C5221F; background-color: #FCE8E6; border: 1px solid #FAD2CF; display: none;"></div>
         </div>
 
         <!-- STEP 4: WAIVER -->
@@ -835,8 +850,10 @@
 
             <div class="form-actions">
                 <button class="btn btn-back" onclick="navigateStep(3)">&lt; Back</button>
-                <button class="btn btn-next" id="waiver-submit-btn" disabled onclick="validateAndNavigate(4, 5)">Proceed to Summary &gt;</button>
+                <button class="btn btn-next" id="waiver-submit-btn" disabled onclick="validateAndNavigate(4, 5)">Proceed
+                    to Summary &gt;</button>
             </div>
+            <div id="step4-error-message" style="margin-top: 15px; padding: 10px; border-radius: 6px; font-weight: 500; font-size: 14px; text-align: center; color: #C5221F; background-color: #FCE8E6; border: 1px solid #FAD2CF; display: none;"></div>
         </div>
 
         <!-- STEP 5: CONFIRMATION -->
@@ -862,8 +879,10 @@
 
             <div class="form-actions">
                 <button class="btn btn-back" onclick="navigateStep(4)">&lt; Back</button>
-                <button class="btn btn-next" style="background-color: var(--primary-color);" onclick="confirmBookingFinal()">Confirm Booking</button>
+                <button class="btn btn-next" style="background-color: var(--primary-color);"
+                    id="confirm-booking-btn" onclick="confirmBookingFinal()">Confirm Booking</button>
             </div>
+            <div id="booking-status-message" style="margin-top: 20px; padding: 15px; border-radius: 8px; font-weight: 500; font-size: 15px; text-align: center; display: none;"></div>
         </div>
 
     </div>
@@ -881,6 +900,26 @@
         let selectedDate = new Date(TODAY);
         let selectedTime = "2:30–3:15 PM";
 
+        const ALL_TIME_SLOTS = [
+            "12:00–12:45 PM",
+            "12:50–1:35 PM",
+            "1:40–2:25 PM",
+            "2:30–3:15 PM",
+            "3:20–4:05 PM",
+            "4:10–4:55 PM",
+            "5:00–5:45 PM",
+            "5:50–6:35 PM"
+        ];
+        let bookedSlots = [];
+
+        function getLocalDateString(date) {
+            if (!date) return "";
+            const yyyy = date.getFullYear();
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const dd = String(date.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        }
+
         const dogPricing = {
             1: { name: "Base session (1 dog)", price: 35.00 },
             2: { name: "Dog 2", price: 10.00 },
@@ -891,6 +930,12 @@
 
         // Navigation trigger logic
         function navigateStep(targetStep) {
+            // Hide any inline validation messages when changing steps
+            const err3 = document.getElementById("step3-error-message");
+            const err4 = document.getElementById("step4-error-message");
+            if (err3) err3.style.display = "none";
+            if (err4) err4.style.display = "none";
+
             document.getElementById(`step-content-${currentStep}`).classList.remove('active');
             document.getElementById(`step-content-${targetStep}`).classList.add('active');
 
@@ -910,6 +955,11 @@
         // Form fields step validation
         function validateAndNavigate(current, next) {
             const card = document.getElementById(`step-content-${current}`);
+            const err3 = document.getElementById("step3-error-message");
+            const err4 = document.getElementById("step4-error-message");
+
+            if (err3) err3.style.display = "none";
+            if (err4) err4.style.display = "none";
 
             // Apply visual cue class
             card.classList.add('was-validated');
@@ -927,12 +977,18 @@
             if (current === 3) {
                 // Ensure date and time slot are chosen
                 if (!selectedDate) {
-                    alert("Please select a date from the calendar.");
+                    if (err3) {
+                        err3.innerText = "Please select a date from the calendar.";
+                        err3.style.display = "block";
+                    }
                     return;
                 }
                 const selectedSlot = document.querySelector('.time-slot.selected');
                 if (!selectedSlot) {
-                    alert("Please select a time slot.");
+                    if (err3) {
+                        err3.innerText = "Please select a time slot.";
+                        err3.style.display = "block";
+                    }
                     return;
                 }
             }
@@ -945,7 +1001,10 @@
                     if (cb.checked) checkedCount++;
                 });
                 if (checkedCount < checkboxes.length) {
-                    alert("Please check all waiver agreement boxes.");
+                    if (err4) {
+                        err4.innerText = "Please check all waiver agreement boxes.";
+                        err4.style.display = "block";
+                    }
                     return;
                 }
             }
@@ -1044,8 +1103,8 @@
             document.getElementById('summary-dog-preview').innerText = `${count} dog${count > 1 ? 's' : ''}`;
         }
 
-        // Handles active logic selections inside time blocks 
         function selectTimeSlot(element) {
+            if (element.classList.contains('disabled')) return;
             document.querySelectorAll('.time-slot').forEach(slot => slot.classList.remove('selected'));
             element.classList.add('selected');
             selectedTime = element.innerText.trim();
@@ -1112,8 +1171,13 @@
                 const compareDate = new Date(thisDate.getFullYear(), thisDate.getMonth(), thisDate.getDate());
                 const todayCompare = new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate());
 
-                // Disable days before today
-                if (compareDate < todayCompare) {
+                // Check if all timeslots are booked for this date
+                const dateStr = getLocalDateString(thisDate);
+                const bookedCountForDate = bookedSlots.filter(b => b.bookingDate === dateStr).length;
+                const isFullyBooked = bookedCountForDate >= ALL_TIME_SLOTS.length;
+
+                // Disable days before today or fully booked days
+                if (compareDate < todayCompare || isFullyBooked) {
                     dayCell.classList.add('disabled');
                 } else {
                     // Click handler for selectable days
@@ -1122,6 +1186,7 @@
                         dayCell.classList.add('selected');
                         selectedDate = thisDate;
                         updateTimeSlotsTitle();
+                        renderTimeSlots();
                     };
 
                     // Highlight selected date
@@ -1159,12 +1224,79 @@
 
         function updateTimeSlotsTitle() {
             const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
-            const dateStr = selectedDate.toLocaleDateString('en-GB', options);
+            const dateStr = selectedDate ? selectedDate.toLocaleDateString('en-GB', options) : "None";
             document.getElementById('selected-date-title').innerText = `Available times for ${dateStr}`;
+        }
+
+        function renderTimeSlots() {
+            const grid = document.getElementById('time-slots-grid');
+            grid.innerHTML = '';
+
+            if (!selectedDate) {
+                grid.innerHTML = '<div style="grid-column: span 4; color: var(--text-muted); font-size: 14px; text-align: center;">Please select a date first.</div>';
+                return;
+            }
+
+            const dateStr = getLocalDateString(selectedDate);
+            const bookedForSelectedDate = bookedSlots
+                .filter(b => b.bookingDate === dateStr)
+                .map(b => b.timeSlot);
+
+            let autoSelectedSet = false;
+
+            ALL_TIME_SLOTS.forEach(slot => {
+                const slotCell = document.createElement('div');
+                slotCell.className = 'time-slot';
+                slotCell.innerText = slot;
+
+                const isBooked = bookedForSelectedDate.includes(slot);
+
+                if (isBooked) {
+                    slotCell.classList.add('disabled');
+                } else {
+                    slotCell.onclick = function () {
+                        selectTimeSlot(slotCell);
+                    };
+
+                    if (selectedTime === slot) {
+                        slotCell.classList.add('selected');
+                        autoSelectedSet = true;
+                    }
+                }
+
+                grid.appendChild(slotCell);
+            });
+
+            // If the previously selected time slot is now booked, auto-select the first available slot
+            if (!autoSelectedSet) {
+                const firstAvailableCell = Array.from(grid.children).find(child => !child.classList.contains('disabled'));
+                if (firstAvailableCell) {
+                    firstAvailableCell.classList.add('selected');
+                    selectedTime = firstAvailableCell.innerText.trim();
+                } else {
+                    selectedTime = "";
+                }
+                document.getElementById('summary-time-preview').innerText = selectedTime || "No slot selected";
+            }
         }
 
         // Post the collected booking data to the Wix parent frame via postMessage
         function confirmBookingFinal() {
+            const confirmBtn = document.getElementById("confirm-booking-btn");
+            const statusEl = document.getElementById("booking-status-message");
+
+            if (confirmBtn) {
+                confirmBtn.disabled = true;
+                confirmBtn.innerText = "Processing...";
+            }
+            if (statusEl) {
+                statusEl.style.display = "block";
+                statusEl.style.backgroundColor = "#E8F0FE";
+                statusEl.style.color = "#1A73E8";
+                statusEl.style.border = "1px solid #ADCCF9";
+                statusEl.innerText = "Processing payment, please wait...";
+            }
+
             // Collect Owner's details
             const ownerDetails = {
                 fullName: document.getElementById('owner-name').value,
@@ -1180,7 +1312,7 @@
             const dogCount = parseInt(document.getElementById('dog-count-select').value);
             const dogs = [];
             const dogCards = document.querySelectorAll('#dog-cards-container .dog-card');
-            
+
             dogCards.forEach((card, index) => {
                 const inputs = card.querySelectorAll('input, textarea');
                 if (inputs.length >= 4) {
@@ -1195,7 +1327,7 @@
             });
 
             // Format date for Wix
-            const bookingDateString = selectedDate ? selectedDate.toISOString().split('T')[0] : "";
+            const bookingDateString = selectedDate ? getLocalDateString(selectedDate) : "";
             const bookingDateFormatted = selectedDate ? selectedDate.toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : "";
 
             // Compile final booking data payload
@@ -1223,20 +1355,50 @@
         // Listen for messages returning from Wix parent frame
         window.addEventListener("message", (event) => {
             console.log("Message received from Wix parent:", event.data);
-            
-            if (event.data.type === "submissionSuccess") {
-                alert("Booking successfully confirmed! Reference ID: " + event.data.bookingId);
-                // Optionally redirect or show a static thank you page state
-            } else if (event.data.type === "submissionError") {
-                alert("Error saving booking: " + event.data.message);
+
+            const statusEl = document.getElementById("booking-status-message");
+            const confirmBtn = document.getElementById("confirm-booking-btn");
+
+            if (event.data.type === "bookingsData") {
+                bookedSlots = event.data.bookings || [];
+                // Re-render calendar and time slots
+                renderCalendar();
+                renderTimeSlots();
+            } else if (event.data.type === "submissionSuccess" || event.data.type === "bookingSaved") {
+                if (statusEl) {
+                    statusEl.style.display = "block";
+                    statusEl.style.backgroundColor = "#E6F4EA";
+                    statusEl.style.color = "#137333";
+                    statusEl.style.border = "1px solid #A3E2AB";
+                    statusEl.innerText = "Booking successfully confirmed! Reference ID: " + event.data.bookingId;
+                }
+                if (confirmBtn) {
+                    confirmBtn.disabled = true;
+                    confirmBtn.innerText = "Confirmed ✅";
+                }
+            } else if (event.data.type === "submissionError" || event.data.type === "bookingError") {
+                if (statusEl) {
+                    statusEl.style.display = "block";
+                    statusEl.style.backgroundColor = "#FCE8E6";
+                    statusEl.style.color = "#C5221F";
+                    statusEl.style.border = "1px solid #FAD2CF";
+                    statusEl.innerText = "Booking failed/cancelled: " + event.data.message;
+                }
+                if (confirmBtn) {
+                    confirmBtn.disabled = false;
+                    confirmBtn.innerText = "Confirm Booking";
+                }
             }
         });
 
         // Initial trigger layout setup runs safely
         window.onload = function () {
             updateDogFormsAndPrice();
-            renderCalendar();
             updateTimeSlotsTitle();
+            // Request bookings from Wix Velo parent
+            parent.postMessage({ type: "requestBookings" }, "*");
+            renderCalendar();
+            renderTimeSlots();
         };
     </script>
 
