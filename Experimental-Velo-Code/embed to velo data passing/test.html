@@ -869,7 +869,7 @@
                     <div>🐾 <strong>Dog Selection:</strong> <span id="summary-dog-preview">1 dog</span></div>
                     <div>📅 <strong>Date Selected:</strong> <span id="summary-date-preview">Monday, 22 June 2026</span>
                     </div>
-                    <div>🕒 <strong>Time Slot:</strong> <span id="summary-time-preview">No slot selected</span></div>
+                    <div>🕒 <strong>Time Slot:</strong> <span id="summary-time-preview">2:30–3:15 PM</span></div>
                 </div>
                 <div class="summary-total" style="border-top: none; padding-top: 0; margin-top: 0;">
                     <span>Total Due</span>
@@ -898,17 +898,17 @@
         let calendarYear = TODAY.getFullYear();
         let calendarMonth = TODAY.getMonth();
         let selectedDate = new Date(TODAY);
-        let selectedTime = "";
+        let selectedTime = "2:30–3:15 PM";
 
         const ALL_TIME_SLOTS = [
-            "12:00-12:45 PM",
-            "12:50-1:35 PM",
-            "1:40-2:25 PM",
-            "2:30-3:15 PM",
-            "3:20-4:05 PM",
-            "4:10-4:55 PM",
-            "5:00-5:45 PM",
-            "5:50-6:35 PM"
+            "12:00–12:45 PM",
+            "12:50–1:35 PM",
+            "1:40–2:25 PM",
+            "2:30–3:15 PM",
+            "3:20–4:05 PM",
+            "4:10–4:55 PM",
+            "5:00–5:45 PM",
+            "5:50–6:35 PM"
         ];
         let bookedSlots = [];
 
@@ -949,13 +949,6 @@
                 }
             }
             currentStep = targetStep;
-
-            if (targetStep === 3) {
-                // Request updated bookings from Wix parent whenever entering step 3
-                const dateStr = selectedDate ? getLocalDateString(selectedDate) : "";
-                parent.postMessage({ type: "requestBookings", date: dateStr }, "*");
-            }
-
             window.scrollTo(0, 0);
         }
 
@@ -1180,14 +1173,7 @@
 
                 // Check if all timeslots are booked for this date
                 const dateStr = getLocalDateString(thisDate);
-                const bookedCountForDate = bookedSlots.filter(b => {
-                    if (!b.bookingDate) return false;
-                    let bDate = b.bookingDate;
-                    if (typeof bDate === 'string' && bDate.includes('T')) {
-                        bDate = bDate.split('T')[0];
-                    }
-                    return bDate === dateStr;
-                }).length;
+                const bookedCountForDate = bookedSlots.filter(b => b.bookingDate === dateStr).length;
                 const isFullyBooked = bookedCountForDate >= ALL_TIME_SLOTS.length;
 
                 // Disable days before today or fully booked days
@@ -1201,10 +1187,6 @@
                         selectedDate = thisDate;
                         updateTimeSlotsTitle();
                         renderTimeSlots();
-
-                        // Request updated bookings from Wix parent when date changes
-                        const dateStr = getLocalDateString(thisDate);
-                        parent.postMessage({ type: "requestBookings", date: dateStr }, "*");
                     };
 
                     // Highlight selected date
@@ -1238,9 +1220,6 @@
                 calendarYear++;
             }
             renderCalendar();
-
-            // Request updated bookings from Wix parent on month change
-            parent.postMessage({ type: "requestBookings" }, "*");
         }
 
         function updateTimeSlotsTitle() {
@@ -1260,14 +1239,7 @@
 
             const dateStr = getLocalDateString(selectedDate);
             const bookedForSelectedDate = bookedSlots
-                .filter(b => {
-                    if (!b.bookingDate) return false;
-                    let bDate = b.bookingDate;
-                    if (typeof bDate === 'string' && bDate.includes('T')) {
-                        bDate = bDate.split('T')[0];
-                    }
-                    return bDate === dateStr;
-                })
+                .filter(b => b.bookingDate === dateStr)
                 .map(b => b.timeSlot);
 
             let autoSelectedSet = false;
@@ -1295,10 +1267,16 @@
                 grid.appendChild(slotCell);
             });
 
-            // If the previously selected time slot is now booked or not set, clear selection
+            // If the previously selected time slot is now booked, auto-select the first available slot
             if (!autoSelectedSet) {
-                selectedTime = "";
-                document.getElementById('summary-time-preview').innerText = "No slot selected";
+                const firstAvailableCell = Array.from(grid.children).find(child => !child.classList.contains('disabled'));
+                if (firstAvailableCell) {
+                    firstAvailableCell.classList.add('selected');
+                    selectedTime = firstAvailableCell.innerText.trim();
+                } else {
+                    selectedTime = "";
+                }
+                document.getElementById('summary-time-preview').innerText = selectedTime || "No slot selected";
             }
         }
 
@@ -1382,23 +1360,7 @@
             const confirmBtn = document.getElementById("confirm-booking-btn");
 
             if (event.data.type === "bookingsData") {
-                const newBookings = event.data.bookings || [];
-                const requestedDate = event.data.requestedDate;
-
-                if (requestedDate) {
-                    // Update only the bookings for the requested date to keep the calendar intact
-                    bookedSlots = bookedSlots.filter(b => {
-                        let bDate = b.bookingDate;
-                        if (typeof bDate === 'string' && bDate.includes('T')) {
-                            bDate = bDate.split('T')[0];
-                        }
-                        return bDate !== requestedDate;
-                    }).concat(newBookings);
-                } else {
-                    // Replace all bookings
-                    bookedSlots = newBookings;
-                }
-
+                bookedSlots = event.data.bookings || [];
                 // Re-render calendar and time slots
                 renderCalendar();
                 renderTimeSlots();
