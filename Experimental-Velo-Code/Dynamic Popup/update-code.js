@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Quicksand:wght@500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background: transparent;
+            padding: 20px;
+            position: relative;
+        }
+
+        .table-title {
+            text-align: center;
+            font-family: 'Fredoka', sans-serif;
+            font-size: 32px;
+            font-weight: 700;
+            color: #1a2e1a;
+            margin-bottom: 6px;
+        }
+
+        .table-sub {
+            text-align: center;
+            color: #c0392b;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 0;
+        }
+
+        /* ============ DESKTOP TABLE ============ */
+        .menu-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .menu-table thead tr th {
+            background: #3A7D44;
+            color: white;
+            font-family: 'Fredoka', sans-serif;
+            font-size: 17px;
+            font-weight: 700;
+            padding: 14px 10px;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+
+        .menu-table thead tr th:first-child {
+            width: 46px;
+        }
+
+        .day-cell {
+            background: #3A7D44;
+            color: white;
+            font-family: 'Fredoka', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            text-align: center;
+            padding: 8px 4px;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            transform: rotate(180deg);
+            letter-spacing: 2px;
+            width: 46px;
+        }
+
+        .meal-cell {
+            padding: 10px 12px;
+            border: 1px solid #b8d4b8;
+            vertical-align: top;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .meal-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #000;
+            margin-bottom: 1px;
+            margin-top: 8px;
+            display: block;
+        }
+
+        .meal-label:first-child {
+            margin-top: 0;
+        }
+
+        .dish-name {
+            font-size: 12px;
+            font-weight: 700;
+            color: #1a1a1a;
+            cursor: pointer;
+            line-height: 1.4;
+            margin-bottom: 1px;
+            display: block;
+        }
+
+        .dish-name:hover {
+            color: #3A7D44;
+            text-decoration: underline;
+        }
+
+        .dish-sub {
+            font-size: 11.5px;
+            font-weight: 500;
+            color: #222;
+            margin-bottom: 1px;
+            line-height: 1.4;
+        }
+
+        .dish-sub b {
+            font-weight: 700;
+        }
+
+        .meal-divider {
+            border: none;
+            border-top: 1px solid #a8c8a8;
+            margin: 7px 0;
+        }
+
+        .row-light td.meal-cell {
+            background: #E9F5DB;
+        }
+
+        .row-dark td.meal-cell {
+            background: #CFE1B9;
+        }
+
+        .row-light td.day-cell,
+        .row-dark td.day-cell {
+            background: #3A7D44;
+        }
+
+        /* ============ MOBILE VIEW ============ */
+        .mobile-view {
+            display: none;
+        }
+
+        .tab-row {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            margin-bottom: 10px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .tab-row::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tab-btn {
+            flex: 1 0 auto;
+            background: #E9F5DB;
+            color: #1a2e1a;
+            border: 2px solid transparent;
+            border-radius: 10px;
+            padding: 10px 6px;
+            font-family: 'Fredoka', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            text-align: center;
+            min-width: 58px;
+            transition: all 0.15s ease;
+        }
+
+        .week-btn {
+            min-width: 66px;
+        }
+
+        .tab-btn.active {
+            background: #3A7D44;
+            color: white;
+            border-color: #2c5e34;
+        }
+
+        .mobile-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            padding: 16px;
+            border: 1px solid #b8d4b8;
+        }
+
+        .mobile-card-header {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            color: #3A7D44;
+            margin-bottom: 12px;
+            text-align: center;
+            letter-spacing: 0.5px;
+        }
+
+        .mobile-meal-block {
+            margin-bottom: 14px;
+        }
+
+        .mobile-meal-block:last-child {
+            margin-bottom: 0;
+        }
+
+        .mobile-meal-label {
+            display: inline-block;
+            background: #3A7D44;
+            color: white;
+            font-family: 'Fredoka', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 20px;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .mobile-dish-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1a1a1a;
+            cursor: pointer;
+            line-height: 1.4;
+            display: block;
+        }
+
+        .mobile-dish-name:active {
+            color: #3A7D44;
+        }
+
+        .mobile-dish-sub {
+            font-size: 13px;
+            font-weight: 500;
+            color: #555;
+            margin-top: 2px;
+            line-height: 1.4;
+        }
+
+        .mobile-hint {
+            text-align: center;
+            font-size: 11px;
+            color: #888;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .desktop-view {
+                display: none;
+            }
+
+            .mobile-view {
+                display: block;
+            }
+
+            .table-title {
+                font-size: 24px;
+            }
+
+            .table-sub {
+                font-size: 15px;
+                margin-bottom: 0;
+            }
+        }
+
+
+    </style>
+</head>
+
+<body>
+
+    <h2 class="table-title">🍓 Our 4-Week Meal Plan</h2>
+
+    <!-- Hand pointer + instruction text -->
+    <div style="display:flex; align-items:center; justify-content:center; margin: 18px 0 26px; gap:16px;">
+        <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
+            <img src="https://static.wixstatic.com/media/a1f766_48fe24115a554ddb8f7c6efa70b050e1~mv2.png"
+                alt="click here" style="width:70px; height:70px; transform:rotate(-25deg); object-fit:contain;">
+            <span style="font-size:11px; font-weight:700; color:#1a1a1a; letter-spacing:0.5px;">CLICK on Menu- Click on
+                any meal to see <br>pictures of dishes</span>
+
+            <br>
+            <!-- ======================================================= -->
+            <!-- DESKTOP TABLE                                            -->
+            <!-- ======================================================= -->
+            <div class="desktop-view">
+                <table class="menu-table">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>WEEK 1</th>
+                            <th>WEEK 2</th>
+                            <th>WEEK 3</th>
+                            <th>WEEK 4</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <!-- ══ MONDAY ══ -->
+                        <tr class="row-light">
+                            <td class="day-cell">MON</td>
+                            <td class="meal-cell">
+                                <span class="meal-label">AM Snack:</span>
+                                <span class="dish-name"
+                                    onclick="op('Crackers &amp; Cream Cheese','Fruit: (Seasonal Fruit)','https://static.wixstatic.com/media/a1f766_ecab4820ba00422f976253f443f4f43a~mv2.png')">Crackers
+                                    &amp; Cream Cheese</span>
+                                <div class="dish-sub"><b>Fruit:</b> (Seasonal Fruit)</div>
+                                <hr class="meal-divider">
+                                <span class="meal-label">LUNCH:</span>
+                                <span class="dish-name"
+                                    onclick="op('Ginger Veggies Rice with Chicken cubes','VEG: *(Mixed Vegetable)','https://static.wixstatic.com/media/a1f766_c78abc9592b04ffd96c6b8239eb4ce01~mv2.png')">Ginger
+                                    Veggies Rice with Chicken cubes</span>
+                                <div class="dish-sub"><b>VEG:</b> *(Mixed Vegetable)</div>
+                                <hr class="meal-divider">
+                                <span class="meal-label">PM Snack:</span>
+                                <span class="dish-name"
+                                    onclick="op('Fruit Yogurt','*(Fruit: Strawberry puree)','https://static.wixstatic.com/media/a1f766_3f39b64d25cf4882ac45404cfe92ff5f~mv2.png')">Fruit
+                                    Yogurt</span>
+                                <div class="dish-sub">*(Fruit: Strawberry puree)</div>
+                            </td>
+                            <td class="meal-cell">
+                                <span class="meal-label">AM Snack:</span>
+                                <span class="dish-name"
+                                    onclick="op('Strawberry Honey Oat Cake Slice','*(Fruit: Strawberry)','https://static.wixstatic.com/media/a1f766_ce2d67183f4e4e7ea30c136631e4a176~mv2.png')">Strawberry
+                                    Honey Oat Cake Slice.</span>
+                                <div class="dish-sub">*(Fruit: Strawberry)</div>
+                                <hr class="meal-divider">
+                                <span class="meal-label">LUNCH:</span>
+                                <span class="dish-name"
+                                    onclick="op('Lemon-Cream Fish with Veggie Rice','VEG: *(Mixed Veg)','https://static.wixstatic.com/media/a1f766_95c629c1b5214be097f76a2f6a66a2e8~mv2.png')">Lemon-Cream
+                                    Fish with Veggie Rice</span>
+                                <div class="dish-sub"><b>VEG:</b> *(Mixed Veg)</div>
+                                <hr class="meal-divider">
+                                <span class="meal-label">PM Snack:</span>
+                                <span class="dish-name"
+                                    onclick="op('Fruit Yogurt','*(Fruit: Strawberry-Puree)','https://static.wixstatic.com/media/a1f766_3f39b64d25cf4882ac45404cfe92ff5f~mv2.png')">Fruit
+                                    Yogurt</span>
+                                <div class="dish-sub">*(Fruit: Strawberry-Puree)</div>
+                            </td>
+                            <td class="meal-cell">
+                                <span class="meal-label">AM Snack:</span>
+                                <span class="dish-name"
+                                    onclick="op('Banana-Honey-Oat Cake Slice','*(Fruit: Banana)','https://static.wixstatic.com/media/a1f766_9c3de839d6244864902967082051b4ad~mv2.png')">Banana-Honey-Oat
+                                    Cake Slice.</span>
+                                <div class="dish-sub">*(Fruit: Banana)</div>
+                                <hr class="meal-divider">
+                                <span class="meal-label">LUNCH:</span>
+                                <span class="dish-name"
+                                    onclick="op('Hearty Chicken Soup with Chicken Cubes','*(VEG: Mixed Veg)','https://static.wixstatic.com/media/a1f766_85ff0a6ef84d4f37b6196f1b32afa91c~mv2.png')">Hearty
+                                    Chicken Soup with Chicken Cubes</span>
+                                <div class="dish-sub">*(VEG: Mixed Veg)</div>
+                                <hr class="meal-divider">
+                                <span class="meal-label">PM Snack:</span>
+                                <span class="dish-name"
+                                    onclick="op('Extra-Virgin Olive Oil Infused Labneh with Thyme &amp; Garlic naan Bread','','https://static.wixstatic.com/media/a1f766_09511a99d8e54c3c816be15f457247b3~mv2.png')">Extra-Virgin
+                                    Olive Oil Infused Labneh with Thyme &amp; Garlic naan Bread.</span>
+                            </td>
+                            <td class="meal-cell">
+                                <span class="meal-label">AM Snack:</span>
+                                <span class="dish-name"
+                                    onclick="op('Organic Dates, Honey Oat Cake Slice','*(Fruit: Organic Dates)','https://static.wixstatic.com/media/a1f766_a4bcfe70fd544c7faac35a37654ffcca~mv2.png')">Organic
+                                    Dates, Honey Oat Cake Slice.</span>
+                                <div class="dish-sub">*(Fruit: Organic Dates)</div>
+                                <hr class="meal-divider">
+                                <span class="meal-label">LUNCH:</span>
+                                <span class="dish-name"
+                                    onclick="op('Lentil Rice &amp; Signature Yogurt Sauce','(VEG: Cucumber)','https://static.wixstatic.com/media/a1f766_425289ba0d104e18bfcad4320bc6d7f6~mv2.png')">Lentil
+                                    Rice &amp; Signature Yogurt Sauce.</span>
+                                <div class="dish-sub">(VEG: Cucumber)</div>
+                                <hr class="meal-divider">
+                                <span class="meal-label">PM Snack:</span>
+                                <span class="dish-name"
+                                    onclick="op('Strawberry-infused Pancakes','(Fruit: Apple Slices)','https://static.wixstatic.com/media/a1f766_7b931e5396564124ba3a56f1face5b36~mv2.png')">Strawberry-infused
+                                    Pancakes.</span>
+                                <div class="dish-sub">(Fruit: Apple Slices)</div>
+                            </td>
+                        </tr>
+
+                        <!-- ══ TUESDAY ══ -->
+                        <tr class="row-dark">
+                            <td class="day-cell">TUE</td>
+                            <td class="meal-cell">
+                                <span class="meal-label">AM Snack:</span>
+                                <span class="dish-name"
+                                    onclick="op('Banana Cake Slice','*(Fruit: Banana Puree)','https://static.wixstatic.com/media/a1f766_fd6d155244944d6c83c3b5e8d51b7d32~mv2.png')">Banana
+                                    Cake Slice</span>
+                                <div class="dish-sub">*(Fruit: Banana Puree)</div>
+                                <hr class="meal-divider">
+                                <span class="meal-label">LUNCH:</span>
+                                <span class="dish-name"
+                                    onclick="op('Baked Fish with Veggie Couscous','(VEG: Mixed Veg.)','https://static.wixstatic.com/media/a1f766_60c36bf45c3a41019ba16e1c760cee8b~mv2.png')">Baked
+                                    Fish with Veggie Couscous</span>
+                                <div class="dish-sub">(VEG: Mixed Veg.)</div>
+                                <hr class="meal-divider">
+                                <span class="meal-label">PM Snack:</span>
+                                <span class="dish-name"
+                                    onclick="op('Crackers &amp; Hummus','(VEG: Cucumber)','https://static.wixstatic.com/media/a1f766_7f63af35eb354583b76e28acaf674e99~mv2.png')">Crackers
+                                    &amp; Hummus</span>
+                                <div class="dish-sub">(VEG: Cucumber)</div>
+                            </td>
+                            <td class="meal-cell">
+                                <span class="meal-label">AM Snack:</span>
+                                <span class="dish-name"
+                                    onclick="op('Blueberry Oat Muffins','*(Fruit: Blueberry)','https://static.wixstatic.com/media/a1f766_e2efe22454124233b9942850140ac621~mv2.png')">Blueberry
+                                    Oat Muffins</span>
+                                <div class="dish-sub">*(Fruit: Blueberry)</div>
+                                <hr class="meal-divider">
+                                <span class="meal-label">LUNCH:</span>
+                                <span class="dish-name"
+                                    onclick="op('Marinara &amp; Meat-Balls - Signature Baked Potato Wedges','(VEG: Steamed Carrots)','https://static.wixstatic.com/media/a1f766_6e64aee863634d4796ffe98411984256~mv2.png')">Marinara
+                                    &amp; Meat-Balls - Signature Baked Potato Wedges</span>
+                                <div class="dish-sub">(VEG: Steamed Carrots)</div>
+                                <hr class="meal-divider">
+                                <span class="meal-label">PM Snack:</span>
+                                <span class="dish-name"
+                                    onclick="op('Sweet Potato Dip with Pita crackers','','https://static.wixstatic.com/media/a1f766_06ba876401354ca888b75faed9332bd1~mv2.png')">Sweet
+                                    Potato Dip with Pita crackers.</span>
+                            </td>
+                            <td class="meal-cell">
+                                <span class="meal-label">AM Snack:</span>
+                                <span class="dish-name"
+                                    onclick="op('Oatmeal Peach Honey Cups','*(Fruit: Peach)','https://static.wixstatic.com/media/a1f766_3574e5db537747adbb5b9cf9d524f3ae~mv2.png')">Oatmeal
+                                    Peach Honey Cups</span>
+                                <div class="dish-sub">*(Fruit: Peach)</div>
+                                <hr class="meal-divider">
+                                <span class="meal-label">LUNCH:</span>
+                                <span class="dish-name"
+                                    onclick="op('Mexican Chicken Burrito','*(VEG: Mixed Veg)','https://static.wixstatic.com/media/a1f766_e5181711fe7d494cb358322963334bae~mv2.png')">Mexican
+                                    Chicken Burrito</span>
+                                <div class="dish-sub">*(VEG: Mixed Veg)</div>
+                                <hr class="meal-divider">
+                                <span class="meal-label">PM Snack:</span>
+                                <span class="dish-name"
+                                    onclick="op('Fruits Yogurt','*(Fruits: Strawberry Puree)','https://static.wixstatic.com/media/a1f766_3f39b64d25cf4882ac45404cfe92ff5f~mv2.png')">Fruits
+                                    Yogurt</span>
+                                <div class="dish-sub">*(Fruits: Strawberry Puree)</div>
+                            </td>
+                            <td class="meal-cell">
+                                <span class="meal-label">AM Snack:</span>
+                                <span class="dish-name"
+                                    onclick="op('Strawberry Honey Oat Cups','*(Fruits: Strawberry)','https://static.wixstatic.com/media/a1f766_ae9d712edff64a8ea0678a4b10346f6e~mv2.png')">Strawberry
+                                    Honey Oat Cups</span>
+                                <div class="dish-sub">*(Fruits: Strawberry)</div>
+                                <hr class="meal-divider">
+                                <span class="meal-label">LUNCH:</span>
+                                <span class="dish-name"
+                                    onclick="op('Chickpea-Eggplant Veggie Casserole &amp; Rice','*(VEG: Mixed Veg)','https://static.wixstatic.com/media/a1f766_c78abc9592b04ffd96c6b8239eb4ce01~mv2.png')">Chickpea-Eggplant
+                                    Veggie Casserole &amp; Rice</span>
+                                <div class="dish-sub">*(VEG: Mixed Veg)</div>
+                                <hr class="meal-divider">
+                                <span class="meal-label">PM Snack:</span>
+                                <span class="dish-name"
+                                    onclick="op('Sweet Potato Pancakes','(Fruit: Apple Slices)','https://static.wixstatic.com/media/a1f766_06ba876401354ca888b75faed9332bd1~mv2.png')">Sweet
+                                    Potato Pancakes.</span>
+                                <div class="dish-sub">(Fruit: Apple Slices)</div>
+                            </td>
+                        </tr>
+
+                        <!-- ══ WEDNESDAY ══ -->
+                        <tr class="row-light">
+                            <td class="day-cell">WED</td>
+                            <td class="meal-cell">
+                                <span class="meal-label">AM Snack:</span>
+                                <span class="dish-name"
+                                    onclick="op('Corn Flakes','(Dried Fruits: Raisins)','https://static.wixstatic.com/media/a1f766_85e0532805264908a3f8b87303b243d4~mv2.png')">Corn
+                                    Flakes</span>
+                                <div class="dish-sub">(Dried Fruits: Raisins)</div>
+                                <hr class="meal-divider">
+                                <span class="meal-label">LUNCH:</span>
+                                <span class="dish-name"
+                                    onclick="op('Swedish Meatballs &amp; Veg rice','','https://static.wixstatic.com/media/a1f766_d925166183b340ef8decf81a006dc3b3~mv2.png')">Swedish
+                                    Meatballs &amp; Veg rice.</span>
+                                <hr class="meal-divider">
+                                <span class="meal-label">PM Snack:</span>
+                                <span class="dish-name"
+                                    onclick="op('Fruit-infused Pancakes','( Natural Honey )','https://static.wixstatic.com/media/a1f766_f1a434cd8bc44b238cfe644389b497b7~mv2.png')">Fruit-infused
+                                    Pancakes</span>
+                                <div class="dish-sub">( Natural Honey )</div>
+                            </td>
+                            <td class="meal-cell">
+                                <span class="meal-label">AM Snack:</span>
+                                <span class="dish-name"
+                                    onclick="op('Healthy Oat Cereal','(Fruit: Seasonal Fruit)','https://static.wixstatic.com/media/a1f766_85ff0a6ef84d4f37b6196f1b32afa91c~mv2.png')">Healthy
+                                    Oat Cereal</span>
+                                <div class="dish-sub">(Fruit: Seasonal Fruit)</div>
+                                <hr class="meal-divider">
+                                <span class="meal-label">LUNCH:</span>
+                                <span class="dish-name"
+                                    onclick="op('Signature Lentil Soup &amp; Garlic Bread Sticks','*(VEG: Mixed Veg)','https://static.wixstatic.com/media/a1f766_6eaaacd255ae46d7ad5aff72c3bb88cd~mv2.png')">Signature
+                                    Lentil Soup &amp; Garlic Bread Sticks</span>
+                                <div class="dish-sub">*(VEG: Mixed Veg)</div>
+                                <hr class="meal-divider">
+                                <span class="meal-label">PM Snack:</span>
+                                <span class="dish-name"
+                                    onclick="op('Porridge W/Cream, Apples, Cinnamon','*(Fruits: Apple puree)','https://static.wixstatic.com/media/a1f766_b071001042644f7c830972bbee2cb8e7~mv2.png')">Porridge
+                                    W/Cream, Apples, Cinnamon</span>
+                                <div class="dish-sub">*(Fruits: Apple puree)</div>
+                            </td>
+                            <td class="meal-cell">
+                                <span class="meal-label">AM Snack:</span>
+                                <span class="dish-name"
+                                    onclick="op('Apple-Honey-Milk Porridge','*(Fruit: Apple Puree)','https://static.wixstatic.com/media/a1f766_95d0ba7845c7405589eba96142cbd293~mv2.png')">Apple-Honey-Milk
+                                    Porridge.</span>
+                                <div class="dish-sub">*(Fruit: Apple Puree)</div>
+                                <hr class="meal-divider">
+                                <span class="meal-label">LUNCH:</span>
+                                <span class="dish-name"
+                                    onclick="op('Signature caramelized onion &amp; 4-cheese sauce LASAGNA','*(VEG: Mixed Veg)','https://static.wixstatic.com/media/a1f766_5777871926e34bd3b0ff1fbf229e5df4~mv2.png')">Signature
+                                    caramelized onion &amp; 4-cheese sauce LASAGNA</span>
+                                <div class="dish-sub">*(VEG: Mixed Veg)</div>
+                                <hr class="meal-divider">
+                                <span class="meal-label">PM Snack:</span>
+                                <span class="dish-name"
+                                    onclick="op('CornFlakes','(Fruit: Apple Slices)','https://static.wixstatic.com/media/a1f766_85e0532805264908a3f8b87303b243d4~mv2.png')">CornFlakes</span>
+                                <div class="dish-sub">(Fruit: Apple Slices)</div>
+                            </td>
+                            <td class="meal-cell">
+                                <span class="meal-label">AM Snack:</span>
+                                <span class="dish-name"
+                                    onclick="op('4-Seasonal Fruit Salad','','https://static.wixstatic.com/media/a1f766_19e66ec649194f5899d22750f148c23c~mv2.png')">4-Seasonal
+                                    Fruit Salad</span>
+                                <hr class="meal-divider">
+                                <span class="meal-label">LUNCH:</span>
+                                <span class="dish-name"
+                                    onclick="op('Signature Chicken-caramelized onion &amp; 4-cheese MAC&amp;CHEESE','*(VEG: Mixed Veg)','https://static.wixstatic.com/media/a1f766_7e6fdd3f77d14099ad0c348fd40c552d~mv2.png')">Signature
+                                    Chicken-caramelized onion &amp; 4-cheese MAC&amp;CHEESE</span>
+                                <div class="dish-sub">*(VEG: Mixed Veg)</div>
+                                <hr class="meal-divider">
+                                <span class="meal-label">PM Snack:</span>
+                                <span class="dish-name"
+                                    onclick="op('Toasted Waffles w/ Honey','(Fruit: Apple Slices)','https://static.wixstatic.com/media/a1f766_a6ef968d34824d6da956cb281dd4d38e~mv2.png')">Toasted
+                                    Waffles w/ Honey</span>
+                                <div class="dish-sub">(Fruit: Apple Slices)</div>
+                            </td>
+                        </tr>
+
+                        <!-- ══ THURSDAY ══ -->
+                        <tr class="row-dark">
+                            <td class="day-cell">THU</td>
+                            <td class="meal-cell">
+                                <span class="meal-label">AM Snack:</span>
+                                <span class="dish-name"
+                                    onclick="op('Banana Oat Tortillas','*(Fruit: Banana puree)','https://static.wixstatic.com/media/a1f766_fd6d155244944d6c83c3b5e8d51b7d32~mv2.png')">Banana
+                                    Oat Tortillas</span>
+                                <div class="dish-sub">*(Fruit: Banana puree)</div>
+                                <hr class="meal-divider">
+                                <span class="meal-label">LUNCH:</span>
+                                <span class="dish-name"
+                                    onclick="op('Chicken Shepherd-Pie','*(VEG: Mixed Veg)','https://static.wixstatic.com/media/a1f766_421b857ab15f493995d8c6374ebf7508~mv2.png')">Chicken
+                                    Shepherd-Pie</span>
+                                <div class="dish-sub">*(VEG: Mixed Veg)</div>
+                                <hr class="meal-divider">
+                                <span class="meal-label">PM Snack:</span>
+                                <span class="dish-name"
+                                    onclick="op('Three-Cheese Spinach Creamy Dip With Coloured Tortilla chips','*(VEG: Spinach)','https://static.wixstatic.com/media/a1f766_de78529ea52a4dc6b0e104bc91c6a0ee~mv2.png')">Three-Cheese
+                                    Spinach Creamy Dip With Coloured Tortilla chips</span>
+                                <div class="dish-sub">*(VEG: Spinach)</div>
+                            </td>
+                            <td class="meal-cell">
+                                <span class="meal-label">AM Snack:</span>
+                                <span class="dish-name"
+                                    onclick="op('Apple-Honey-Cinnamon Muffins','*(Fruits: Apple Puree)','https://static.wixstatic.com/media/a1f766_b071001042644f7c830972bbee2cb8e7~mv2.png')">Apple-Honey-Cinnamon
+                                    Muffins</span>
+                                <div class="dish-sub">*(Fruits: Apple Puree)</div>
+                                <hr class="meal-divider">
+                                <span class="meal-label">LUNCH:</span>
+                                <span class="dish-name"
+                                    onclick="op('Pan Pizza with BBQ chicken &amp; Vegetables &amp; three Cheeses','','https://static.wixstatic.com/media/a1f766_219db773580e4ee2bb952bd02d84f059~mv2.png')">Pan
+                                    Pizza with BBQ chicken &amp; Vegetables &amp; three Cheeses.</span>
+                                <hr class="meal-divider">
+                                <span class="meal-label">PM Snack:</span>
+                                <span class="dish-name"
+                                    onclick="op('German Egg-Potato Salad','(VEG: Sliced Carrots)','https://static.wixstatic.com/media/a1f766_7b9371f8224743769d9831cf038a3c76~mv2.png')">German
+                                    Egg-Potato Salad</span>
+                                <div class="dish-sub">(VEG: Sliced Carrots)</div>
+                            </td>
+                            <td class="meal-cell">
+                                <span class="meal-label">AM Snack:</span>
+                                <span class="dish-name"
+                                    onclick="op('Scones','(Fruit: Orange Slices)','https://static.wixstatic.com/media/a1f766_f9206d9325d1438190961c0ddfc0fcb2~mv2.png')">Scones</span>
+                                <div class="dish-sub">(Fruit: Orange Slices)</div>
+                                <hr class="meal-divider">
+                                <span class="meal-label">LUNCH:</span>
+                                <span class="dish-name"
+                                    onclick="op('Pasta El Forno with 2 cheeses mix','*(VEG: Mixed Veg)','https://static.wixstatic.com/media/a1f766_feff51438d904a0da35a676e027ce057~mv2.png')">Pasta
+                                    El Forno with 2 cheeses mix</span>
+                                <div class="dish-sub">*(VEG: Mixed Veg)</div>
+                                <hr class="meal-divider">
+                                <span class="meal-label">PM Snack:</span>
+                                <span class="dish-name"
+                                    onclick="op('Crackers &amp; Hummus','(VEG: Cucumber)','https://static.wixstatic.com/media/a1f766_3bc5fb7559644193a892c30bbdc4efd1~mv2.png')">Crackers
+                                    &amp; Hummus</span>
+                                <div class="dish-sub">(VEG: Cucumber)</div>
+                            </td>
+                            <td class="meal-cell">
+                                <span class="meal-label">AM Snack:</span>
+                                <span class="dish-name"
+                                    onclick="op('Apple Honey Milk Porridge','*(Fruit: Apple Puree)','https://static.wixstatic.com/media/a1f766_95d0ba7845c7405589eba96142cbd293~mv2.png')">AM:
+                                    Apple Honey Milk Porridge.</span>
+                                <div class="dish-sub">*(Fruit: Apple Puree)</div>
+                                <hr class="meal-divider">
+                                <span class="meal-label">LUNCH:</span>
+                                <span class="dish-name"
+                                    onclick="op('Chicken Quesadilla with 3-Cheese mix','*(VEG: Mixed Veg)','https://static.wixstatic.com/media/a1f766_703d6a7ba1a540a3ab6338ec49bcb3fd~mv2.png')">Chicken
+                                    Quesadilla with 3-Cheese mix.</span>
+                                <div class="dish-sub">*(VEG: Mixed Veg)</div>
+                                <hr class="meal-divider">
+                                <span class="meal-label">PM Snack:</span>
+                                <span class="dish-name"
+                                    onclick="op('Cheerios','(Fruit: Mandarin Slices)','https://static.wixstatic.com/media/a1f766_0139750614134791849a1384cb58e057~mv2.png')">Cheerios</span>
+                                <div class="dish-sub">(Fruit: Mandarin Slices)</div>
+                            </td>
+                        </tr>
+
+                        <!-- ══ FRIDAY ══ -->
+                        <tr class="row-light">
+                            <td class="day-cell">FRI</td>
+                            <td class="meal-cell">
+                                <span class="meal-label">AM Snack:</span>
+                                <span class="dish-name"
+                                    onclick="op('Whole-wheat Bagel with Fresh Strawberry cream cheese','*(Fruits: Strawberries)','https://static.wixstatic.com/media/a1f766_1a84e9491efe463390ee6229417282ea~mv2.png')">Whole-wheat
+                                    Bagel with Fresh Strawberry cream cheese.</span>
+                                <div class="dish-sub">*(Fruits: Strawberries)</div>
+                                <hr class="meal-divider">
+                                <span class="meal-label">LUNCH:</span>
+                                <span class="dish-name"
+                                    onclick="op('Pasta Fusilli, Ragu Sauce &amp; Chicken','*(VEG: Mixed Veg)','https://static.wixstatic.com/media/a1f766_5d1c041eea604b479b4d7b37b491a2c2~mv2.png')">Pasta
+                                    Fusilli, Ragu Sauce &amp; Chicken</span>
+                                <div class="dish-sub">*(VEG: Mixed Veg)</div>
+                                <hr class="meal-divider">
+                                <span class="meal-label">PM Snack:</span>
+                                <span class="dish-name"
+                                    onclick="op('Fresh Seasonal Fruit Salad','','https://static.wixstatic.com/media/a1f766_19e66ec649194f5899d22750f148c23c~mv2.png')">Fresh
+                                    Seasonal Fruit Salad</span>
+                            </td>
+                            <td class="meal-cell">
+                                <span class="meal-label">AM Snack:</span>
+                                <span class="dish-name"
+                                    onclick="op('Hummus Dip &amp; Cucumber Sticks','(VEG: Sliced Cucumber)','https://static.wixstatic.com/media/a1f766_3bc5fb7559644193a892c30bbdc4efd1~mv2.png')">Hummus
+                                    Dip &amp; Cucumber Sticks</span>
+                                <div class="dish-sub">(VEG: Sliced Cucumber)</div>
+                                <hr class="meal-divider">
+                                <span class="meal-label">LUNCH:</span>
+                                <span class="dish-name"
+                                    onclick="op('Fussili Pasta Alfredo with Chicken Cubes','*(VEG: Mixed Veg)','https://static.wixstatic.com/media/a1f766_879504f725e845ed9c81dc024bc122b4~mv2.png')">Fussili
+                                    Pasta Alfredo with Chicken Cubes.</span>
+                                <div class="dish-sub">*(VEG: Mixed Veg)</div>
+                                <hr class="meal-divider">
+                                <span class="meal-label">PM Snack:</span>
+                                <span class="dish-name"
+                                    onclick="op('Sweet Potato Pancakes','(Natural Honey)','https://static.wixstatic.com/media/a1f766_06ba876401354ca888b75faed9332bd1~mv2.png')">Sweet
+                                    Potato Pancakes</span>
+                                <div class="dish-sub">(Natural Honey)</div>
+                            </td>
+                            <td class="meal-cell">
+                                <span class="meal-label">AM Snack:</span>
+                                <span class="dish-name"
+                                    onclick="op('Blueberry Honey Oat Cups','(Fruit: Blueberry)','https://static.wixstatic.com/media/a1f766_f90b06b7088448799d620aefcca78a68~mv2.png')">Blueberry
+                                    Honey Oat Cups</span>
+                                <div class="dish-sub">(Fruit: Blueberry)</div>
+                                <hr class="meal-divider">
+                                <span class="meal-label">LUNCH:</span>
+                                <span class="dish-name"
+                                    onclick="op('BBQ Chicken - Veg. Rice - Tomato, Cucumber &amp; 2-Cheese sauce Wrap','*(VEG: Mixed Veg)','https://static.wixstatic.com/media/a1f766_642b2d09c30b479bbdb3db6e6af71cfc~mv2.png')">BBQ
+                                    Chicken - Veg. Rice - Tomato, Cucumber &amp; 2-Cheese sauce Wrap.</span>
+                                <div class="dish-sub">*(VEG: Mixed Veg)</div>
+                                <hr class="meal-divider">
+                                <span class="meal-label">PM Snack:</span>
+                                <span class="dish-name"
+                                    onclick="op('Oatmeal Banana Cookies','*(Fruit: Banana-Apple)','https://static.wixstatic.com/media/a1f766_9c3de839d6244864902967082051b4ad~mv2.png')">Oatmeal
+                                    Banana Cookies.</span>
+                                <div class="dish-sub">*(Fruit: Banana-Apple)</div>
+                            </td>
+                            <td class="meal-cell">
+                                <span class="meal-label">AM Snack:</span>
+                                <span class="dish-name"
+                                    onclick="op('Blueberry Honey Oat Muffins','*(Fruit: Blueberry)','https://static.wixstatic.com/media/a1f766_e81bbbb7a31e4136bd882682dd90e38e~mv2.png')">Blueberry
+                                    Honey Oat Muffins</span>
+                                <div class="dish-sub">*(Fruit: Blueberry)</div>
+                                <hr class="meal-divider">
+                                <span class="meal-label">LUNCH:</span>
+                                <span class="dish-name"
+                                    onclick="op('Greek Chicken Souvlaki with Rice &amp; Tzatziki Sauce','*(VEG: Mixed Veg)','https://static.wixstatic.com/media/a1f766_703d6a7ba1a540a3ab6338ec49bcb3fd~mv2.png')">Greek
+                                    Chicken Souvlaki with Rice &amp; Tzatziki Sauce.</span>
+                                <div class="dish-sub">*(VEG: Mixed Veg)</div>
+                                <hr class="meal-divider">
+                                <span class="meal-label">PM Snack:</span>
+                                <span class="dish-name"
+                                    onclick="op('Extra-Virgin Olive Oil Infused Labneh with Thyme &amp; Garlic Naan Bread','','https://static.wixstatic.com/media/a1f766_09511a99d8e54c3c816be15f457247b3~mv2.png')">Extra-Virgin
+                                    Olive Oil Infused Labneh with Thyme &amp; Garlic Naan Bread.</span>
+                            </td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- ======================================================= -->
+            <!-- MOBILE VIEW                                              -->
+            <!-- ======================================================= -->
+            <div class="mobile-view">
+                <div class="tab-row" id="dayTabs"></div>
+                <div class="tab-row" id="weekTabs"></div>
+                <div class="mobile-card">
+                    <div class="mobile-card-header" id="mobileCardHeader"></div>
+                    <div id="mobileCardBody"></div>
+                </div>
+                <p class="mobile-hint">Tap a day or week above to switch • Tap any meal name for details</p>
+            </div>
+
+
+
+            <script>
+                function op(name, detail, imgUrl) {
+                    // Send data to Wix Velo
+                    window.parent.postMessage({
+                        type: 'clickMeal',
+                        name: name,
+                        detail: detail,
+                        imgUrl: imgUrl
+                    }, '*');
+                }
+
+                /* ===================== MOBILE DATA ===================== */
+                var MEAL_DATA = {
+                    MON: {
+                        1: { am: ['Crackers &amp; Cream Cheese', 'Fruit: (Seasonal Fruit)', 'https://static.wixstatic.com/media/a1f766_ecab4820ba00422f976253f443f4f43a~mv2.png'], lunch: ['Ginger Veggies Rice with Chicken cubes', 'VEG: *(Mixed Vegetable)', 'https://static.wixstatic.com/media/a1f766_c78abc9592b04ffd96c6b8239eb4ce01~mv2.png'], pm: ['Fruit Yogurt', '*(Fruit: Strawberry puree)', 'https://static.wixstatic.com/media/a1f766_3f39b64d25cf4882ac45404cfe92ff5f~mv2.png'] },
+                        2: { am: ['Strawberry Honey Oat Cake Slice.', '*(Fruit: Strawberry)', 'https://static.wixstatic.com/media/a1f766_ce2d67183f4e4e7ea30c136631e4a176~mv2.png'], lunch: ['Lemon-Cream Fish with Veggie Rice', 'VEG: *(Mixed Veg)', 'https://static.wixstatic.com/media/a1f766_95c629c1b5214be097f76a2f6a66a2e8~mv2.png'], pm: ['Fruit Yogurt', '*(Fruit: Strawberry-Puree)', 'https://static.wixstatic.com/media/a1f766_3f39b64d25cf4882ac45404cfe92ff5f~mv2.png'] },
+                        3: { am: ['Banana-Honey-Oat Cake Slice.', '*(Fruit: Banana)', 'https://static.wixstatic.com/media/a1f766_9c3de839d6244864902967082051b4ad~mv2.png'], lunch: ['Hearty Chicken Soup with Chicken Cubes', '*(VEG: Mixed Veg)', 'https://static.wixstatic.com/media/a1f766_85ff0a6ef84d4f37b6196f1b32afa91c~mv2.png'], pm: ['Extra-Virgin Olive Oil Infused Labneh with Thyme & Garlic naan Bread.', '', 'https://static.wixstatic.com/media/a1f766_09511a99d8e54c3c816be15f457247b3~mv2.png'] },
+                        4: { am: ['Organic Dates, Honey Oat Cake Slice.', '*(Fruit: Organic Dates)', 'https://static.wixstatic.com/media/a1f766_a4bcfe70fd544c7faac35a37654ffcca~mv2.png'], lunch: ['Lentil Rice & Signature Yogurt Sauce.', '(VEG: Cucumber)', 'https://static.wixstatic.com/media/a1f766_425289ba0d104e18bfcad4320bc6d7f6~mv2.png'], pm: ['Strawberry-infused Pancakes.', '(Fruit: Apple Slices)', 'https://static.wixstatic.com/media/a1f766_7b931e5396564124ba3a56f1face5b36~mv2.png'] }
+                    },
+                    TUE: {
+                        1: { am: ['Banana Cake Slice', '*(Fruit: Banana Puree)', 'https://static.wixstatic.com/media/a1f766_fd6d155244944d6c83c3b5e8d51b7d32~mv2.png'], lunch: ['Baked Fish with Veggie Couscous', '(VEG: Mixed Veg.)', 'https://static.wixstatic.com/media/a1f766_60c36bf45c3a41019ba16e1c760cee8b~mv2.png'], pm: ['Crackers & Hummus', '(VEG: Cucumber)', 'https://static.wixstatic.com/media/a1f766_7f63af35eb354583b76e28acaf674e99~mv2.png'] },
+                        2: { am: ['Blueberry Oat Muffins', '*(Fruit: Blueberry)', 'https://static.wixstatic.com/media/a1f766_e2efe22454124233b9942850140ac621~mv2.png'], lunch: ['Marinara & Meat-Balls - Signature Baked Potato Wedges', '(VEG: Steamed Carrots)', 'https://static.wixstatic.com/media/a1f766_6e64aee863634d4796ffe98411984256~mv2.png'], pm: ['Sweet Potato Dip with Pita crackers.', '', 'https://static.wixstatic.com/media/a1f766_06ba876401354ca888b75faed9332bd1~mv2.png'] },
+                        3: { am: ['Oatmeal Peach Honey Cups', '*(Fruit: Peach)', 'https://static.wixstatic.com/media/a1f766_3574e5db537747adbb5b9cf9d524f3ae~mv2.png'], lunch: ['Mexican Chicken Burrito', '*(VEG: Mixed Veg)', 'https://static.wixstatic.com/media/a1f766_e5181711fe7d494cb358322963334bae~mv2.png'], pm: ['Fruits Yogurt', '*(Fruits: Strawberry Puree)', 'https://static.wixstatic.com/media/a1f766_3f39b64d25cf4882ac45404cfe92ff5f~mv2.png'] },
+                        4: { am: ['Strawberry Honey Oat Cups', '*(Fruits: Strawberry)', 'https://static.wixstatic.com/media/a1f766_ae9d712edff64a8ea0678a4b10346f6e~mv2.png'], lunch: ['Chickpea-Eggplant Veggie Casserole & Rice', '*(VEG: Mixed Veg)', 'https://static.wixstatic.com/media/a1f766_c78abc9592b04ffd96c6b8239eb4ce01~mv2.png'], pm: ['Sweet Potato Pancakes.', '(Fruit: Apple Slices)', 'https://static.wixstatic.com/media/a1f766_06ba876401354ca888b75faed9332bd1~mv2.png'] }
+                    },
+                    WED: {
+                        1: { am: ['Corn Flakes', '(Dried Fruits: Raisins)', 'https://static.wixstatic.com/media/a1f766_85e0532805264908a3f8b87303b243d4~mv2.png'], lunch: ['Swedish Meatballs & Veg rice.', '', 'https://static.wixstatic.com/media/a1f766_d925166183b340ef8decf81a006dc3b3~mv2.png'], pm: ['Fruit-infused Pancakes', '( Natural Honey )', 'https://static.wixstatic.com/media/a1f766_f1a434cd8bc44b238cfe644389b497b7~mv2.png'] },
+                        2: { am: ['Healthy Oat Cereal', '(Fruit: Seasonal Fruit)', 'https://static.wixstatic.com/media/a1f766_85ff0a6ef84d4f37b6196f1b32afa91c~mv2.png'], lunch: ['Signature Lentil Soup & Garlic Bread Sticks', '*(VEG: Mixed Veg)', 'https://static.wixstatic.com/media/a1f766_6eaaacd255ae46d7ad5aff72c3bb88cd~mv2.png'], pm: ['Porridge W/Cream, Apples, Cinnamon', '*(Fruits: Apple puree)', 'https://static.wixstatic.com/media/a1f766_b071001042644f7c830972bbee2cb8e7~mv2.png'] },
+                        3: { am: ['Apple-Honey-Milk Porridge.', '*(Fruit: Apple Puree)', 'https://static.wixstatic.com/media/a1f766_95d0ba7845c7405589eba96142cbd293~mv2.png'], lunch: ['Signature caramelized onion & 4-cheese sauce LASAGNA', '*(VEG: Mixed Veg)', 'https://static.wixstatic.com/media/a1f766_5777871926e34bd3b0ff1fbf229e5df4~mv2.png'], pm: ['CornFlakes', '(Fruit: Apple Slices)', 'https://static.wixstatic.com/media/a1f766_85e0532805264908a3f8b87303b243d4~mv2.png'] },
+                        4: { am: ['4-Seasonal Fruit Salad', '', 'https://static.wixstatic.com/media/a1f766_19e66ec649194f5899d22750f148c23c~mv2.png'], lunch: ['Signature Chicken-caramelized onion & 4-cheese MAC&CHEESE', '*(VEG: Mixed Veg)', 'https://static.wixstatic.com/media/a1f766_7e6fdd3f77d14099ad0c348fd40c552d~mv2.png'], pm: ['Toasted Waffles w/ Honey', '(Fruit: Apple Slices)', 'https://static.wixstatic.com/media/a1f766_a6ef968d34824d6da956cb281dd4d38e~mv2.png'] }
+                    },
+                    THU: {
+                        1: { am: ['Banana Oat Tortillas', '*(Fruit: Banana puree)', 'https://static.wixstatic.com/media/a1f766_fd6d155244944d6c83c3b5e8d51b7d32~mv2.png'], lunch: ['Chicken Shepherd-Pie', '*(VEG: Mixed Veg)', 'https://static.wixstatic.com/media/a1f766_421b857ab15f493995d8c6374ebf7508~mv2.png'], pm: ['Three-Cheese Spinach Creamy Dip With Coloured Tortilla chips', '*(VEG: Spinach)', 'https://static.wixstatic.com/media/a1f766_de78529ea52a4dc6b0e104bc91c6a0ee~mv2.png'] },
+                        2: { am: ['Apple-Honey-Cinnamon Muffins', '*(Fruits: Apple Puree)', 'https://static.wixstatic.com/media/a1f766_b071001042644f7c830972bbee2cb8e7~mv2.png'], lunch: ['Pan Pizza with BBQ chicken & Vegetables & three Cheeses.', '', 'https://static.wixstatic.com/media/a1f766_219db773580e4ee2bb952bd02d84f059~mv2.png'], pm: ['German Egg-Potato Salad', '(VEG: Sliced Carrots)', 'https://static.wixstatic.com/media/a1f766_7b9371f8224743769d9831cf038a3c76~mv2.png'] },
+                        3: { am: ['Scones', '(Fruit: Orange Slices)', 'https://static.wixstatic.com/media/a1f766_f9206d9325d1438190961c0ddfc0fcb2~mv2.png'], lunch: ['Pasta El Forno with 2 cheeses mix', '*(VEG: Mixed Veg)', 'https://static.wixstatic.com/media/a1f766_feff51438d904a0da35a676e027ce057~mv2.png'], pm: ['Crackers & Hummus', '(VEG: Cucumber)', 'https://static.wixstatic.com/media/a1f766_3bc5fb7559644193a892c30bbdc4efd1~mv2.png'] },
+                        4: { am: ['Apple Honey Milk Porridge.', '*(Fruit: Apple Puree)', 'https://static.wixstatic.com/media/a1f766_95d0ba7845c7405589eba96142cbd293~mv2.png'], lunch: ['Chicken Quesadilla with 3-Cheese mix.', '*(VEG: Mixed Veg)', 'https://static.wixstatic.com/media/a1f766_703d6a7ba1a540a3ab6338ec49bcb3fd~mv2.png'], pm: ['Cheerios', '(Fruit: Mandarin Slices)', 'https://static.wixstatic.com/media/a1f766_0139750614134791849a1384cb58e057~mv2.png'] }
+                    },
+                    FRI: {
+                        1: { am: ['Whole-wheat Bagel with Fresh Strawberry cream cheese.', '*(Fruits: Strawberries)', 'https://static.wixstatic.com/media/a1f766_1a84e9491efe463390ee6229417282ea~mv2.png'], lunch: ['Pasta Fusilli, Ragu Sauce & Chicken', '*(VEG: Mixed Veg)', 'https://static.wixstatic.com/media/a1f766_5d1c041eea604b479b4d7b37b491a2c2~mv2.png'], pm: ['Fresh Seasonal Fruit Salad', '', 'https://static.wixstatic.com/media/a1f766_19e66ec649194f5899d22750f148c23c~mv2.png'] },
+                        2: { am: ['Hummus Dip & Cucumber Sticks', '(VEG: Sliced Cucumber)', 'https://static.wixstatic.com/media/a1f766_3bc5fb7559644193a892c30bbdc4efd1~mv2.png'], lunch: ['Fussili Pasta Alfredo with Chicken Cubes.', '*(VEG: Mixed Veg)', 'https://static.wixstatic.com/media/a1f766_879504f725e845ed9c81dc024bc122b4~mv2.png'], pm: ['Sweet Potato Pancakes', '(Natural Honey)', 'https://static.wixstatic.com/media/a1f766_06ba876401354ca888b75faed9332bd1~mv2.png'] },
+                        3: { am: ['Blueberry Honey Oat Cups', '(Fruit: Blueberry)', 'https://static.wixstatic.com/media/a1f766_f90b06b7088448799d620aefcca78a68~mv2.png'], lunch: ['BBQ Chicken - Veg. Rice - Tomato, Cucumber & 2-Cheese sauce Wrap.', '*(VEG: Mixed Veg)', 'https://static.wixstatic.com/media/a1f766_642b2d09c30b479bbdb3db6e6af71cfc~mv2.png'], pm: ['Oatmeal Banana Cookies.', '*(Fruit: Banana-Apple)', 'https://static.wixstatic.com/media/a1f766_9c3de839d6244864902967082051b4ad~mv2.png'] },
+                        4: { am: ['Blueberry Honey Oat Muffins', '*(Fruit: Blueberry)', 'https://static.wixstatic.com/media/a1f766_e81bbbb7a31e4136bd882682dd90e38e~mv2.png'], lunch: ['Greek Chicken Souvlaki with Rice & Tzatziki Sauce.', '*(VEG: Mixed Veg)', 'https://static.wixstatic.com/media/a1f766_703d6a7ba1a540a3ab6338ec49bcb3fd~mv2.png'], pm: ['Extra-Virgin Olive Oil Infused Labneh with Thyme & Garlic Naan Bread.', '', 'https://static.wixstatic.com/media/a1f766_09511a99d8e54c3c816be15f457247b3~mv2.png'] }
+                    }
+                };
+
+                var DAYS = ['MON', 'TUE', 'WED', 'THU', 'FRI'];
+                var DAY_LABELS = { MON: 'Monday', TUE: 'Tuesday', WED: 'Wednesday', THU: 'Thursday', FRI: 'Friday' };
+                var currentDay = 'MON';
+                var currentWeek = 1;
+
+                function renderTabs() {
+                    var dayTabsEl = document.getElementById('dayTabs');
+                    dayTabsEl.innerHTML = '';
+                    DAYS.forEach(function (d) {
+                        var btn = document.createElement('button');
+                        btn.className = 'tab-btn' + (d === currentDay ? ' active' : '');
+                        btn.innerText = d;
+                        btn.onclick = function () { currentDay = d; renderTabs(); renderCard(); };
+                        dayTabsEl.appendChild(btn);
+                    });
+                    var weekTabsEl = document.getElementById('weekTabs');
+                    weekTabsEl.innerHTML = '';
+                    [1, 2, 3, 4].forEach(function (w) {
+                        var btn = document.createElement('button');
+                        btn.className = 'tab-btn week-btn' + (w === currentWeek ? ' active' : '');
+                        btn.innerText = 'WEEK ' + w;
+                        btn.onclick = function () { currentWeek = w; renderTabs(); renderCard(); };
+                        weekTabsEl.appendChild(btn);
+                    });
+                }
+
+                function mealBlockHTML(label, entry) {
+                    var name = entry[0], sub = entry[1], img = entry[2];
+                    var safeName = name.replace(/'/g, "\\'");
+                    var safeSub = sub.replace(/'/g, "\\'");
+                    var html = '<div class="mobile-meal-block">';
+                    html += '<span class="mobile-meal-label">' + label + '</span>';
+                    html += '<span class="mobile-dish-name" onclick="op(\'' + safeName + '\',\'' + safeSub + '\',\'' + img + '\')">' + name + '</span>';
+                    if (sub) { html += '<div class="mobile-dish-sub">' + sub + '</div>'; }
+                    html += '</div>';
+                    return html;
+                }
+
+                function renderCard() {
+                    var data = MEAL_DATA[currentDay][currentWeek];
+                    document.getElementById('mobileCardHeader').innerText = DAY_LABELS[currentDay] + ' — Week ' + currentWeek;
+                    var body = '';
+                    body += mealBlockHTML('AM SNACK', data.am);
+                    body += mealBlockHTML('LUNCH', data.lunch);
+                    body += mealBlockHTML('PM SNACK', data.pm);
+                    document.getElementById('mobileCardBody').innerHTML = body;
+                }
+
+                renderTabs();
+                renderCard();
+
+                /* Wix iframe auto-height: tells Wix to resize iframe so outer page scrolls */
+                function notifyWixHeight() {
+                    var h = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
+                    window.parent.postMessage({ type: 'height', value: h }, '*');
+                }
+                var _origRC = renderCard;
+                renderCard = function () { _origRC(); setTimeout(notifyWixHeight, 80); };
+                window.addEventListener('load', function () { setTimeout(notifyWixHeight, 150); });
+                window.addEventListener('resize', notifyWixHeight);
+                notifyWixHeight();
+            </script>
+
+</body>
+
+</html>
+
+
+====================
+
+// ==========================================
+// 1. MAIN PAGE CODE (Where the HTML component is placed)
+// ==========================================
+// Select your HTML Component in the Wix editor and set its ID to #htmlComponent1 (or update the ID in the code below)
+
+import wixWindow from 'wix-window'; 
+// Note: If you are using the newer Wix editor version, you can also use:
+// import wixWindowFrontend from 'wix-window-frontend';
+
+$w.onReady(function () {
+    // Listen to messages from the HTML Component
+    $w("#our4WeekMealPlanhtml").onMessage((event) => {
+        const receivedData = event.data;
+        
+        // Check if the message is for opening the meal details popup
+        if (receivedData && receivedData.type === 'clickMeal') {
+            const mealDetails = {
+                name: receivedData.name,
+                detail: receivedData.detail,
+                imgUrl: receivedData.imgUrl
+            };
+            
+            // Open the Wix Lightbox named "DetailsPopup" and pass the meal details
+            wixWindow.openLightbox("DetailsPopup", mealDetails)
+                .then(() => {
+                    console.log("DetailsPopup lightbox opened successfully.");
+                })
+                .catch((error) => {
+                    console.error("Failed to open DetailsPopup lightbox:", error);
+                });
+        }
+    });
+});
+
+
+================================
+
+import wixWindow from 'wix-window';
+
+$w.onReady(function () {
+
+    const mealData = wixWindow.lightbox.getContext();
+
+    $w("#popupHtml").postMessage({
+        type: "loadData",
+        name: mealData.name,
+        detail: mealData.detail,
+        imgUrl: mealData.imgUrl
+    });
+
+});
+
+
+==================
+
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta charset="UTF-8">
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+html,body{
+width:100%;
+height:100%;
+overflow:hidden;
+font-family:Arial,Helvetica,sans-serif;
+background:#fff;
+}
+
+.wrapper{
+
+width:100%;
+height:100%;
+
+display:flex;
+flex-direction:column;
+
+padding:20px;
+
+}
+
+.imageBox{
+
+flex:1;
+
+display:flex;
+justify-content:center;
+align-items:center;
+
+overflow:hidden;
+
+}
+
+.imageBox img{
+
+max-width:100%;
+max-height:100%;
+
+width:auto;
+height:auto;
+
+object-fit:contain;
+
+border-radius:10px;
+
+display:block;
+
+}
+
+.content{
+
+padding-top:15px;
+
+flex-shrink:0;
+
+}
+
+h2{
+
+font-size:28px;
+font-weight:700;
+
+text-align:center;
+
+margin-bottom:12px;
+
+color:#111;
+
+line-height:1.3;
+
+word-break:break-word;
+
+}
+
+p{
+
+font-size:17px;
+
+line-height:1.6;
+
+text-align:center;
+
+color:#555;
+
+overflow-wrap:anywhere;
+
+word-break:break-word;
+
+display:-webkit-box;
+-webkit-line-clamp:5;
+-webkit-box-orient:vertical;
+overflow:hidden;
+
+}
+
+@media(max-width:768px){
+
+.wrapper{
+
+padding:12px;
+
+}
+
+h2{
+
+font-size:20px;
+
+margin-bottom:8px;
+
+}
+
+p{
+
+font-size:14px;
+
+line-height:1.45;
+
+-webkit-line-clamp:4;
+
+}
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="wrapper">
+
+<div class="imageBox">
+
+<img id="mealImage"/>
+
+</div>
+
+<div class="content">
+
+<h2 id="mealName"></h2>
+
+<p id="mealDetail"></p>
+
+</div>
+
+</div>
+
+<script>
+
+window.onmessage=function(event){
+
+const data=event.data;
+
+if(data.type==="loadData"){
+
+document.getElementById("mealImage").src=data.imgUrl || "";
+
+document.getElementById("mealName").textContent=data.name || "";
+
+document.getElementById("mealDetail").textContent=data.detail || "";
+
+}
+
+}
+
+</script>
+
+</body>
+
+</html>
