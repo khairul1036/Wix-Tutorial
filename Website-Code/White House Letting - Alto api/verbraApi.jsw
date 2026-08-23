@@ -1,0 +1,200 @@
+// backend/vebraApi.jsw
+import { fetch } from 'wix-fetch';
+import wixData from 'wix-data';
+import { parseStringPromise } from 'xml2js';
+import { Buffer } from 'buffer';
+
+const USERNAME = "WhiteH971DLxml";
+const PASSWORD = "877VfXfoG4rBO6W"; 
+const BRANCH_ID = "36794";
+const TOKEN_COLLECTION = "ApiTokens"; 
+const TOKEN_ID = "vebra_alto_main_token"; 
+const PROPERTY_COLLECTION = "Properties"; // নতুন CMS কালেকশন
+
+// ♻️ টোকেন ম্যানেজমেন্ট (আগের মতোই)
+async function getValidToken() {
+    try {
+        let currentTime = new Date();
+        let savedTokenRecord = await wixData.get(TOKEN_COLLECTION, TOKEN_ID, { suppressAuth: true });
+
+        if (savedTokenRecord && savedTokenRecord.expiresAt > currentTime) {
+            return savedTokenRecord.tokenValue;
+        }
+
+        const authString = Buffer.from(USERNAME + ":" + PASSWORD).toString('base64');
+        const tokenResponse = await fetch("https://webservices.vebra.com/export/WhiteHouseAPI/v13/branch", {
+            method: 'GET',
+            headers: { 'Authorization': 'Basic ' + authString }
+        });
+
+        if (!tokenResponse.ok) throw new Error(`Token API Failed. Status: ${tokenResponse.status}`);
+        
+        let newToken = tokenResponse.headers.get('Token') || tokenResponse.headers.get('token');
+        if (!newToken) throw new Error("Token not found in response");
+
+        let expireTime = new Date();
+        expireTime.setMinutes(expireTime.getMinutes() + 55); 
+
+        let tokenDataToSave = {
+            _id: TOKEN_ID,
+            title: "Alto Vebra Token",
+            tokenValue: newToken,
+            expiresAt: expireTime
+        };
+
+        await wixData.save(TOKEN_COLLECTION, tokenDataToSave, { suppressAuth: true });
+        return newToken;
+
+    } catch (error) {
+        console.error("Token Manager Error:", error.message);
+        return null;
+    }
+}
+
+// 💾 প্রপার্টি ফরমেট করে ডাটাবেসে সেভ/আপডেট করার ফাংশন
+async function savePropertiesToCMS(apiProperties) {
+    console.log(`🟡 Backend Log: Saving/Updating ${apiProperties.length} properties to CMS...`);
+    
+    for (const prop of apiProperties) {
+        try {
+            const propId = prop.$?.id;
+            if (!propId) continue;
+
+            const title = prop.address?.display || "Location not specified";
+            
+            let priceText = "Price on asking";
+            if (prop.price && prop.price._) {
+                let amount = prop.price._;
+                let qualifier = prop.price.$?.qualifier ? ` ${prop.price.$.qualifier}` : "";
+                priceText = `£${amount}${qualifier}`; 
+            }
+
+            const beds = prop.bedrooms && prop.bedrooms !== "0" ? prop.bedrooms : "";
+            const propType = prop.type && prop.type[0] ? prop.type[0] : "";
+            
+            const rawDesc = prop.description || "";
+            const cleanDesc = rawDesc.replace(/<[^>]*>?/gm, ' ').trim(); 
+
+            // 📸 সবগুলো ছবি (type: "0") খুঁজে বের করে একটি অ্যারে তৈরি করা
+            let allImages = [];
+            let epcImageUrl = ""; // EPC ইমেজের জন্য নতুন ভেরিয়েবল
+
+            if (prop.files && prop.files.file) {
+                let filesArray = Array.isArray(prop.files.file) ? prop.files.file : [prop.files.file];
+                
+                // প্রপার্টির সাধারণ ছবিগুলো (type 0)
+                allImages = filesArray.filter(f => f.$ && f.$.type === "0").map(f => f.url);
+                
+                // EPC রেটিংয়ের গ্রাফ/ছবি (type 9)
+                let epcPhoto = filesArray.find(f => f.$ && f.$.type === "9");
+                if (epcPhoto) epcImageUrl = epcPhoto.url;
+            }
+
+            const propertyData = {
+                prop_id: propId,
+                title: title,
+                price: priceText,
+                bedrooms: beds,
+                type: propType,
+                description: cleanDesc,
+                images: JSON.stringify(allImages),
+                epc_image: epcImageUrl // নতুন EPC ডাটা
+            };
+
+            const existingQuery = await wixData.query(PROPERTY_COLLECTION)
+                                               .eq("prop_id", propId)
+                                               .find({ suppressAuth: true });
+
+            if (existingQuery.items.length > 0) {
+                propertyData._id = existingQuery.items[0]._id;
+                await wixData.update(PROPERTY_COLLECTION, propertyData, { suppressAuth: true });
+            } else {
+                await wixData.insert(PROPERTY_COLLECTION, propertyData, { suppressAuth: true });
+            }
+        } catch (error) {
+            console.error(`🔴 Error saving property ID ${prop.$?.id}:`, error.message);
+        }
+    }
+    console.log("🟢 Backend Log: CMS update complete.");
+}
+
+// 🏠 মূল ফাংশন: সার্চ এবং ফেচিং
+export async function searchAltoProperties(searchQuery = "") {
+    try {
+        if (!searchQuery) return [];
+
+        const queryLower = searchQuery.toLowerCase();
+
+        // ধাপ ১: প্রথমে CMS-এ সার্চ করা
+        console.log(`🟡 Backend Log: Searching for "${queryLower}" in CMS...`);
+        const cmsResults = await wixData.query(PROPERTY_COLLECTION)
+                                        .contains("title", queryLower)
+                                        .or(wixData.query(PROPERTY_COLLECTION).contains("description", queryLower))
+                                        .find({ suppressAuth: true });
+
+        if (cmsResults.items.length > 0) {
+            console.log(`🟢 Backend Log: Found ${cmsResults.items.length} properties in CMS.`);
+            return cmsResults.items; // CMS থেকে পাওয়া ডাটা সরাসরি রিটার্ন
+        }
+
+        // ধাপ ২: CMS-এ না পেলে API কল করা
+        console.log("🟡 Backend Log: No results in CMS. Fetching from API...");
+        const token = await getValidToken();
+        if (!token) return [];
+
+        const tokenAuthString = Buffer.from(token).toString('base64'); 
+        
+        // প্রপার্টি লিস্ট ফেচ করা
+        const listResponse = await fetch(`https://webservices.vebra.com/export/WhiteHouseAPI/v13/branch/${BRANCH_ID}/property`, {
+            method: 'GET',
+            headers: { 'Authorization': 'Basic ' + tokenAuthString }
+        });
+
+        if (!listResponse.ok) return [];
+
+        const listXmlText = await listResponse.text();
+        const listJsonData = await parseStringPromise(listXmlText, { explicitArray: false });
+        
+        let propertyList = listJsonData.properties?.property;
+        if (!propertyList) return [];
+        if (!Array.isArray(propertyList)) propertyList = [propertyList];
+
+        // ডিটেইলস ফেচ করা
+        const fullPropertyDetailsPromises = propertyList.map(async (prop) => {
+            try {
+                const detailResponse = await fetch(prop.url, {
+                    method: 'GET',
+                    headers: { 'Authorization': 'Basic ' + tokenAuthString }
+                });
+                
+                if (detailResponse.ok) {
+                    const detailXmlText = await detailResponse.text();
+                    const detailJsonData = await parseStringPromise(detailXmlText, { explicitArray: false });
+                    return detailJsonData.property; 
+                }
+                return null;
+            } catch (err) {
+                return null;
+            }
+        });
+
+        let fullProperties = await Promise.all(fullPropertyDetailsPromises);
+        fullProperties = fullProperties.filter(p => p !== null);
+
+        // ধাপ ৩: API থেকে আসা নতুন ডাটা CMS-এ সেভ করা
+        await savePropertiesToCMS(fullProperties);
+
+        // ধাপ ৪: নতুন সেভ করা ডাটাবেস থেকে আবার সার্চ করে রিটার্ন করা
+        const newCmsResults = await wixData.query(PROPERTY_COLLECTION)
+                                           .contains("title", queryLower)
+                                           .or(wixData.query(PROPERTY_COLLECTION).contains("description", queryLower))
+                                           .find({ suppressAuth: true });
+
+        return newCmsResults.items; 
+
+    } catch (error) {
+        console.error("🔴 Backend Error:", error.message);
+        return [];
+    }
+}
+
