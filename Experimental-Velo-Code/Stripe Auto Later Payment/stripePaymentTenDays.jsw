@@ -1,0 +1,48 @@
+import Stripe from "stripe";
+import { getSecret } from 'wix-secrets-backend';
+import wixData from 'wix-data';
+
+// 1. Stripe SetupIntent তৈরি করা
+export async function initStripeSetup(email) {
+    const secretKey = await getSecret('STRIPE_SECRET_KEY'); 
+    const stripe = new Stripe(secretKey);
+
+    try {
+        const customer = await stripe.customers.create({ email: email || "guest@example.com" });
+        const setupIntent = await stripe.setupIntents.create({
+            customer: customer.id,
+            payment_method_types: ['card'],
+        });
+
+        return {
+            clientSecret: setupIntent.client_secret,
+            customerId: customer.id,
+            success: true
+        };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+}
+
+// 2. Database-এ সেভ করা (১০ দিন পরের তারিখসহ)
+export async function processBookingBackend(payload) {
+    try {
+        // বর্তমান তারিখের সাথে ১০ দিন যোগ করা
+        const chargeDate = new Date();
+        chargeDate.setDate(chargeDate.getDate() + 10);
+
+        const toInsert = {
+            ...payload,
+            paymentStatus: "Pending", 
+            chargeDate: chargeDate, // ডেটাবেসে ১০ দিন পরের তারিখ সেভ হবে
+            rawDataJson: JSON.stringify(payload)
+        };
+
+        const savedItem = await wixData.insert("Bookings", toInsert, { suppressAuth: true });
+        
+        return { success: true, item: savedItem };
+    } catch (error) {
+        console.error("Insert failed:", error);
+        return { success: false, error: error.message };
+    }
+}

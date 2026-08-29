@@ -1,0 +1,47 @@
+import Stripe from "stripe";
+import { getSecret } from 'wix-secrets-backend';
+import wixData from 'wix-data';
+
+export async function processTenDayPayments() {
+    const secretKey = await getSecret('STRIPE_SECRET_KEY');
+    const stripe = new Stripe(secretKey);
+    const today = new Date();
+
+    try {
+        // ডেটাবেস থেকে সেসব বুকিং খুঁজুন যাদের ১০ দিন পূর্ণ হয়েছে এবং পেমেন্ট Pending
+        const result = await wixData.query("Bookings")
+            .le("chargeDate", today)
+            .eq("paymentStatus", "Pending")
+            .find({ suppressAuth: true });
+
+        for (const item of result.items) {
+            try {
+                console.log("Attempting to charge customer:", item.customerId);
+
+                // সেভ করা কার্ড থেকে টাকা কাটা
+                const paymentIntent = await stripe.paymentIntents.create({
+                    amount: item.totalAmount * 100, // সেন্টে হিসাব
+                    currency: 'usd',
+                    customer: item.customerId,
+                    payment_method: item.paymentMethodId,
+                    off_session: true,
+                    confirm: true,
+                });
+
+                // টাকা কাটা সফল হলে স্ট্যাটাস "Paid" করা
+                item.paymentStatus = "Paid";
+                await wixData.update("Bookings", item, { suppressAuth: true });
+                console.log("✅ Payment Successful! ID:", paymentIntent.id);
+
+            } catch (chargeError) {
+                console.error("❌ Payment Failed for:", item.name, chargeError.message);
+                
+                // ফেইল করলে স্ট্যাটাস "Failed" করা
+                item.paymentStatus = "Failed";
+                await wixData.update("Bookings", item, { suppressAuth: true });
+            }
+        }
+    } catch (error) {
+        console.error("Database query failed:", error);
+    }
+}

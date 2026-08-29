@@ -1,0 +1,88 @@
+// backend/stripePayment.jsw
+// 1min later auto payment 
+
+import Stripe from "stripe";
+import { getSecret } from 'wix-secrets-backend';
+import wixData from 'wix-data';
+
+// 1. Stripe SetupIntent তৈরি করা (আগের মতোই থাকবে)
+export async function initStripeSetup(email) {
+    const secretKey = await getSecret('STRIPE_SECRET_KEY'); 
+    const stripe = new Stripe(secretKey);
+
+    try {
+        const customer = await stripe.customers.create({ email: email || "guest@example.com" });
+        const setupIntent = await stripe.setupIntents.create({
+            customer: customer.id,
+            payment_method_types: ['card'],
+        });
+
+        return {
+            clientSecret: setupIntent.client_secret,
+            customerId: customer.id,
+            success: true
+        };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+}
+
+// 2. Database-এ সেভ করা এবং ১ মিনিট পর চার্জ করার লজিক
+export async function processBookingBackend(payload) {
+    try {
+        // ১. প্রথমে ডেটাবেসে Pending স্ট্যাটাসে সেভ করা
+        const toInsert = {
+            ...payload,
+            paymentStatus: "Pending", 
+            rawDataJson: JSON.stringify(payload)
+        };
+
+        // suppressAuth: true দিলে পারমিশনের কোনো ঝামেলা ছাড়াই ব্যাকএন্ড থেকে ডেটাবেস আপডেট হবে
+        const savedItem = await wixData.insert("Bookings", toInsert, { suppressAuth: true });
+        
+        // ২. ব্যাকগ্রাউন্ডে ১ মিনিট পর টাকা কাটার ফাংশন কল করা (await দিচ্ছি না যাতে ফ্রন্টএন্ড সাথে সাথে রেসপন্স পায়)
+        executePaymentAfterOneMinute(savedItem);
+
+        // ৩. ফ্রন্টএন্ডকে সাথে সাথে সাকসেস মেসেজ পাঠিয়ে দেওয়া
+        return { success: true, item: savedItem };
+    } catch (error) {
+        console.error("Insert failed:", error);
+        return { success: false, error: error.message };
+    }
+}
+
+// 3. ১ মিনিট পর স্বয়ংক্রিয়ভাবে চার্জ করার ফাংশন
+async function executePaymentAfterOneMinute(item) {
+    // ৬০,০০০ মিলিসেকেন্ড (১ মিনিট) অপেক্ষা করা
+    await new Promise(resolve => setTimeout(resolve, 60000));
+
+    try {
+        const secretKey = await getSecret('STRIPE_SECRET_KEY');
+        const stripe = new Stripe(secretKey);
+
+        console.log("1 Minute passed. Attempting to charge customer:", item.customerId);
+
+        // সেভ করা কার্ড থেকে টাকা কাটা
+        const paymentIntent = await stripe.paymentIntents.create({
+            amount: item.totalAmount * 100, // Stripe সেন্টে হিসাব করে, তাই ১০০ দিয়ে গুণ
+            currency: 'usd',
+            customer: item.customerId,
+            payment_method: item.paymentMethodId,
+            off_session: true, // এর মানে ইউজার অ্যাক্টিভ না থাকলেও চার্জ হবে
+            confirm: true,     // সাথে সাথেই পেমেন্ট কনফার্ম করবে
+        });
+
+        console.log("✅ Payment Successful! PaymentIntent ID:", paymentIntent.id);
+
+        // পেমেন্ট সফল হলে ডেটাবেসে স্ট্যাটাস আপডেট করে "Paid" করা
+        item.paymentStatus = "Paid";
+        await wixData.update("Bookings", item, { suppressAuth: true });
+
+    } catch (error) {
+        console.error("❌ Delayed Payment Failed:", error.message);
+        
+        // পেমেন্ট ফেইল করলে স্ট্যাটাস "Failed" করে রাখা
+        item.paymentStatus = "Failed";
+        await wixData.update("Bookings", item, { suppressAuth: true });
+    }
+}
