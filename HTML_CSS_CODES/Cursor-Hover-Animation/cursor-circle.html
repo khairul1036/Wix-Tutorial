@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+
+<!-- Custom Follower Circle -->
+<div id="smooth-lag-cursor"></div>
+
+<style>
+  /* ১. পেছনে স্মুথলি মুভ করা পারফেক্ট সাইজ সার্কেল */
+  #smooth-lag-cursor {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 22px;  /* সার্কেলের সাইজ ছোট করা হয়েছে */
+    height: 22px;
+    border: 2px solid #2ED9D2; /* সার্কেলের বর্ডার কালার */
+    background-color: rgba(43, 127, 255, 0.08); /* হালকা ফিল কালার */
+    border-radius: 50%;
+    pointer-events: none; /* পেজের ক্লিকে কোনো বাধা দেবে না */
+    z-index: 99999999;
+    transform: translate(-50%, -50%);
+    box-sizing: border-box;
+    transition: transform 0.15s ease-out;
+  }
+</style>
+
+<script>
+  (function() {
+    const circle = document.getElementById('smooth-lag-cursor');
+    
+    let mouseX = window.innerWidth / 2;
+    let mouseY = window.innerHeight / 2;
+    let circleX = mouseX;
+    let circleY = mouseY;
+    
+    // মাউসের পজিশন ট্র্যাক করা
+    window.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    });
+
+    // স্মুথ ট্রেইলিং ও ল্যাগ ইফেক্ট
+    function render() {
+      circleX += (mouseX - circleX) * 0.08;
+      circleY += (mouseY - circleY) * 0.08;
+
+      circle.style.left = `${circleX}px`;
+      circle.style.top = `${circleY}px`;
+
+      requestAnimationFrame(render);
+    }
+    
+    render();
+  })();
+</script>
+</body>
+
+</html>

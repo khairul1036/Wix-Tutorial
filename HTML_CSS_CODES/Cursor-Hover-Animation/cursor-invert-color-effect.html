@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<!-- Custom Inverted Follower Circle -->
+<div id="smooth-lag-cursor">
+  <svg class="cursor-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="7" y1="17" x2="17" y2="7"></line>
+    <polyline points="7 7 17 7 17 17"></polyline>
+  </svg>
+</div>
+
+<style>
+  /* ১. সাধারণ অবস্থায় ছোট নরমাল সার্কেল */
+  #smooth-lag-cursor {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 22px;
+    height: 22px;
+    border: 2px solid #2ED9D2;
+    background-color: transparent;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 99999999;
+    transform: translate(-50%, -50%);
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: width 0.25s cubic-bezier(0.25, 1, 0.5, 1),
+                height 0.25s cubic-bezier(0.25, 1, 0.5, 1),
+                border-color 0.2s ease,
+                background-color 0.2s ease;
+  }
+
+  /* ২. তীরের আইকন */
+  #smooth-lag-cursor .cursor-arrow {
+    width: 26px;
+    height: 26px;
+    stroke: #000000;
+    opacity: 0;
+    transform: scale(0.4);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+
+  /* ৩. টেক্সট, ইমেজ বা লিংকে গেলে ব্লেন্ড-মোড ইনভার্ট ইফেক্ট */
+  #smooth-lag-cursor.cursor-hovered {
+    width: 72px;
+    height: 72px;
+    background-color: #ffffff; /* difference মোডে সাদা কালার নিচের সবকিছুকে ইনভার্ট করে */
+    border: none;
+    mix-blend-mode: difference; /* সাদার ওপর কালো এবং কালোর ওপর সাদা দেখাবে */
+  }
+
+  #smooth-lag-cursor.cursor-hovered .cursor-arrow {
+    opacity: 1;
+    transform: scale(1);
+  }
+</style>
+
+<script>
+  (function() {
+    const circle = document.getElementById('smooth-lag-cursor');
+    
+    let mouseX = window.innerWidth / 2;
+    let mouseY = window.innerHeight / 2;
+    let circleX = mouseX;
+    let circleY = mouseY;
+    
+    // মাউসের অবস্থান ট্র্যাক করা
+    window.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+
+      // কোন এলিমেন্টের ওপর আছে তা যাচাই
+      const target = e.target;
+      const isHoverable = target.closest('a, button, img, [role="button"], input, h1, h2, h3, h4, h5, h6, p, span');
+      
+      if (isHoverable) {
+        circle.classList.add('cursor-hovered');
+      } else {
+        circle.classList.remove('cursor-hovered');
+      }
+    });
+
+    // স্মুথ ল্যাগ মোশন
+    function render() {
+      circleX += (mouseX - circleX) * 0.08;
+      circleY += (mouseY - circleY) * 0.08;
+
+      circle.style.left = `${circleX}px`;
+      circle.style.top = `${circleY}px`;
+
+      requestAnimationFrame(render);
+    }
+    
+    render();
+  })();
+</script>
+
+</body>
+</html>
