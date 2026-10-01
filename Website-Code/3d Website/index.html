@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>EDK Simple Travel | Main Lobby</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet" />
+
+    <style>
+        :root {
+            --black: #050505;
+            --white: #ffffff;
+            --gold: #d4af37;
+            --wall: #fdfbf7;
+            --wood: #4a2e1b;
+            --menu-width: 140px;
+            --menu-height: 115px;
+            --nav-size: 55px;
+            --nav-gap: 8px;
+        }
+
+        * { box-sizing: border-box; }
+
+        html, body {
+            margin: 0; padding: 0; width: 100%; min-height: 100%;
+            overflow: hidden; background: var(--black); font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            user-select: none; min-height: 100dvh; height: 100dvh;
+            touch-action: manipulation; position: relative;
+        }
+
+        #hud-controls {
+            position: fixed; 
+            bottom: clamp(20px, 8vh, 100px); 
+            left: 50%; transform: translateX(-50%); width: 100%; display: flex;
+            justify-content: center; align-items: flex-end; gap: clamp(80px, 15vw, 200px);
+            z-index: 10000; pointer-events: none;
+        }
+
+        #hud-controls > * { pointer-events: auto; }
+
+        #floating-menu {
+            position: relative; width: clamp(110px, 30vw, var(--menu-width));
+            height: clamp(95px, 25vw, var(--menu-height)); background: rgba(15, 15, 15, 0.98);
+            border: 2px solid var(--gold); border-radius: 10px; display: flex;
+            flex-direction: column; align-items: center; justify-content: center;
+            color: var(--gold); font-family: 'Playfair Display', serif;
+            font-size: clamp(0.9rem, 2.8vw, 1.1rem); font-weight: 800; letter-spacing: 1px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.8); cursor: pointer; transition: 0.2s; text-align: center; padding: 8px;
+        }
+
+        #floating-menu:active { transform: scale(0.95); background: var(--gold); color: var(--black); }
+        .menu-dot { width: 8px; height: 8px; background-color: var(--gold); border-radius: 50%; margin-top: 6px; box-shadow: 0 0 5px var(--gold); }
+
+        #sound-toggle {
+            background: var(--black); border: 1px solid var(--gold); color: var(--gold);
+            border-radius: 4px; width: 80px; height: 24px; display: flex; justify-content: center;
+            align-items: center; font-family: 'Inter', sans-serif; font-size: 0.6rem; font-weight: 700;
+            letter-spacing: 1px; cursor: pointer; transition: 0.2s; margin-bottom: 8px; padding: 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+
+        #sound-toggle:active { transform: scale(0.90); background: var(--gold); color: var(--black); }
+
+        .d-pad {
+            display: grid; grid-template-columns: repeat(3, clamp(46px, 12vw, var(--nav-size)));
+            grid-template-rows: repeat(2, clamp(42px, 11vw, 45px)); gap: clamp(6px, 2vw, var(--nav-gap));
+        }
+
+        .btn-up { grid-column: 2; grid-row: 1; } .btn-down { grid-column: 2; grid-row: 2; }
+        .btn-left { grid-column: 1; grid-row: 2; } .btn-right { grid-column: 3; grid-row: 2; }
+
+        .nav-btn {
+            background: rgba(15, 15, 15, 0.98); color: var(--gold); border: 2px solid var(--gold);
+            border-radius: 10px; font-size: clamp(1.2rem, 4vw, 1.5rem); font-weight: bold; cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.8); transition: 0.1s; display: flex;
+            justify-content: center; align-items: center; min-width: 44px; min-height: 44px;
+        }
+
+        .nav-btn:active { background: var(--gold); color: var(--black); transform: scale(0.95); }
+
+        #viewport { position: fixed; inset: 0; perspective: 800px; overflow: hidden; background: #000; z-index: 1; }
+        #camera-rig { position: absolute; top: 50%; left: 50%; transform-style: preserve-3d; transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1); }
+        #world { transform-style: preserve-3d; transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1); transform-origin: center center; }
+        .item-3d { position: absolute; left: 50%; top: 50%; transform-style: preserve-3d; }
+        .placement { transform: translate3d(var(--x), var(--y), var(--z)) rotateY(var(--ry)); }
+
+        .floor {
+            width: 800px; height: 6000px; margin: -3000px 0 0 -400px; transform: translate3d(0, 250px, -2500px) rotateX(90deg);
+            background: linear-gradient(to right, transparent 38%, rgba(255,255,255,0.15) 50%, transparent 62%),
+                url('https://www.transparenttextures.com/patterns/arabesque.png') center top / 360px auto repeat-y,
+                linear-gradient(to right, transparent calc(50% - 180px), var(--gold) calc(50% - 180px), var(--gold) calc(50% - 170px), #614630 calc(50% - 170px), #614630 calc(50% + 170px), var(--gold) calc(50% + 170px), var(--gold) calc(50% + 180px), transparent calc(50% + 180px)),
+                linear-gradient(to right, rgba(0,0,0,0.4) 0%, transparent 15%, transparent 85%, rgba(0,0,0,0.4) 100%),
+                url('https://www.transparenttextures.com/patterns/white-marble.png'), #e8e4d8;
+        }
+
+        .ceiling { width: 800px; height: 6000px; margin: -3000px 0 0 -400px; transform: translate3d(0, -250px, -2500px) rotateX(-90deg); background: url('https://www.transparenttextures.com/patterns/stardust.png'), #ffffff; box-shadow: inset 0 0 150px rgba(0,0,0,0.1); }
+        .wall-left, .wall-right { width: 6000px; height: 500px; margin: -250px 0 0 -3000px; background-color: var(--wall); background-image: linear-gradient(to bottom, transparent 0px, transparent 338px, var(--gold) 338px, var(--gold) 342px, var(--wood) 342px, #150a05 465px, #333 465px, #050505 468px, #050505 500px), url('https://www.transparenttextures.com/patterns/arabesque.png'); background-size: 100% 500px, auto; background-position: left top, left top; background-repeat: repeat-x, repeat; }
+        .wall-left { transform: translate3d(-400px, 0, -2500px) rotateY(90deg); box-shadow: inset -100px 0 200px rgba(0,0,0,0.5); }
+        .wall-right { transform: translate3d(400px, 0, -2500px) rotateY(-90deg); box-shadow: inset 100px 0 200px rgba(0,0,0,0.5); }
+        .wall-back { width: 800px; height: 500px; margin: -250px 0 0 -400px; transform: translate3d(0, 0, -5500px); background: linear-gradient(to bottom, #111 0px, #111 465px, #333 465px, #050505 468px, #050505 500px); display: flex; justify-content: center; align-items: center; box-shadow: inset 0 0 300px rgba(0,0,0,0.9); }
+
+        .back-video-container { width: 740px; height: 420px; position: relative; overflow: hidden; box-shadow: 0 15px 50px rgba(0,0,0,0.9); border: 8px solid var(--white); background: #000; }
+        .back-video { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
+
+        .door-wrapper { width: 180px; height: 320px; margin: -160px 0 0 -90px; }
+        .door-frame { position: absolute; inset: 0; background: #000; border: 8px solid #d3cec4; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .room-interior { position: absolute; inset: 0; background: linear-gradient(to bottom, #fdfbf7 40%, #dcd3c1 100%); display: flex; justify-content: center; align-items: center; box-shadow: inset 0 10px 40px rgba(0,0,0,0.6); }
+        .door-panel { position: absolute; inset: 0; background: linear-gradient(to right, #351c0e, var(--wood), #351c0e); border: 2px solid #2d1b11; cursor: pointer; transform-origin: right; transition: transform 1.2s ease-in-out; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 20px 0; z-index: 10; pointer-events: auto; }
+        .door-panel:hover { box-shadow: inset 0 0 10px rgba(0,0,0,0.18); }
+        .right-wall-door { transform-origin: left; }
+        .door-wrapper.left-wall-wrapper .door-panel.open { transform: rotateY(95deg); }
+        .door-wrapper.right-wall-wrapper .door-panel.open { transform: rotateY(-95deg); }
+        .glass-panel { width: 70%; height: 85%; background: rgba(255, 255, 255, 0.85); border: 3px inset rgba(0,0,0,0.3); display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: inset 0 0 20px rgba(255,255,255,0.5), 0 0 10px rgba(0,0,0,0.5); pointer-events: none; }
+        .door-edk { font-family: 'Playfair Display', serif; color: var(--wood); font-size: 1.5rem; font-weight: 800; letter-spacing: 2px; border-bottom: 2px solid var(--gold); padding-bottom: 5px; margin-bottom: 20px; }
+        .door-number { font-family: 'Playfair Display', serif; font-size: 4rem; font-weight: 800; color: var(--gold); text-shadow: 0 2px 4px rgba(0,0,0,0.3); margin: 0; }
+        .plaque { position: absolute; top: -45px; left: 50%; transform: translateX(-50%); background: #111; color: var(--gold); border: 2px solid var(--gold); padding: 5px 10px; font-family: 'Inter', sans-serif; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; white-space: nowrap; box-shadow: 0 5px 10px rgba(0,0,0,0.6); border-radius: 4px; }
+        .doorknob { position: absolute; left: 12px; top: 50%; width: 16px; height: 16px; background: radial-gradient(circle, #ffe55c, #d4af37, #8a6d3b); border-radius: 50%; box-shadow: 0 3px 8px rgba(0,0,0,0.8); transform: translateY(-50%); pointer-events: none; }
+        .right-wall-door .doorknob { left: auto; right: 12px; }
+        .keypad-visual { position: absolute; left: -25px; top: 48%; width: 15px; height: 30px; background: #222; border: 1px solid var(--gold); border-radius: 2px; pointer-events: none; }
+        .right-wall-door .keypad-visual { left: auto; right: -25px; }
+
+        .art-group { width: 220px; margin: -150px 0 0 -110px; display: flex; flex-direction: column; align-items: center; position: absolute; transform-style: preserve-3d; }
+        .sconce { width: 16px; height: 45px; background: linear-gradient(to right, #8a6d3b, #ffe55c, #8a6d3b); border-radius: 8px; border: 2px solid #3a2210; cursor: pointer; transition: 0.3s; z-index: 5; --beam: rgba(255, 255, 255, 0.95); position: relative; margin-bottom: 20px; }
+        .sconce::before, .sconce::after { content: ''; position: absolute; left: -42px; width: 100px; height: 100px; opacity: 1; transition: 0.3s; pointer-events: none; }
+        .sconce::before { bottom: 100%; background: radial-gradient(circle at bottom, var(--beam) 0%, transparent 60%); }
+        .sconce::after { top: 100%; background: radial-gradient(circle at top, var(--beam) 0%, transparent 60%); }
+        .sconce.off { background: linear-gradient(to right, #333, #555, #333); border-color: #111; box-shadow: 0 5px 10px rgba(0,0,0,0.8); }
+        .sconce.off::before, .sconce.off::after { opacity: 0; }
+        
+        .resort-tag { background: rgba(15, 15, 15, 0.95); color: var(--gold); border: 1px solid var(--gold); padding: 3px 8px; font-family: 'Playfair Display', serif; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; white-space: nowrap; box-shadow: 0 3px 8px rgba(0,0,0,0.8); border-radius: 3px; letter-spacing: 1px; pointer-events: none; margin-bottom: 12px; }
+        .wall-picture { width: 220px; height: 150px; border: 6px solid var(--gold); box-shadow: 0 10px 20px rgba(0,0,0,0.6); background-color: #050505; overflow: hidden; flex-shrink: 0; position: relative; }
+        .wall-video-player { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+
+        .expand-btn-oval {
+            background: rgba(5, 5, 5, 0.85); color: var(--white);
+            border: 2px solid var(--gold); border-radius: 20px;
+            padding: 4px 10px; font-family: 'Inter', sans-serif; font-size: 0.60rem;
+            font-weight: 600; cursor: pointer; text-transform: uppercase; letter-spacing: 1px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.7); transition: all 0.2s ease;
+            pointer-events: auto; white-space: nowrap; margin-top: 12px; 
+        }
+        .expand-btn-oval:hover { background: var(--gold); color: var(--black); transform: scale(1.05); }
+        .expand-btn-oval:active { transform: scale(0.95); }
+
+        #menu-overlay { display: none; position: fixed; inset: 0; width: 100vw; height: 100dvh; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 25000; flex-direction: column; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.5s ease; padding: 20px; }
+        .menu-card { background: linear-gradient(135deg, rgba(15,15,15,0.95), rgba(25,18,10,0.98)); border: 2px solid var(--gold); border-radius: 12px; padding: 30px 40px; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.8), inset 0 0 20px rgba(212,175,55,0.1); transform: scale(0.9) translateY(30px); transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); width: 100%; max-width: 650px; max-height: 90dvh; overflow-y: auto; }
+        #menu-overlay.active .menu-card { transform: scale(1) translateY(0); }
+        .menu-close { position: absolute; top: 15px; right: 25px; font-size: 2rem; color: var(--gold); cursor: pointer; font-family: 'Inter', sans-serif; transition: 0.3s; }
+        .menu-close:hover { transform: rotate(90deg); color: var(--white); text-shadow: 0 0 10px var(--white); }
+        .menu-title { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--gold); letter-spacing: 4px; margin: 0 0 15px 0; text-align: center; border-bottom: 2px solid rgba(212,175,55,0.3); padding-bottom: 10px; }
+        .menu-instructions { font-family: 'Inter', sans-serif; font-size: 1rem; color: rgba(255, 255, 255, 0.9); text-align: center; margin: 0 auto; max-width: 95%; line-height: 1.6; }
+        .menu-instructions strong { color: var(--gold); }
+
+        .lightbox-backdrop { position: fixed; inset: 0; background: rgba(10, 10, 10, 0.95); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: opacity 0.25s ease, visibility 0.25s ease; z-index: 26000; padding: 20px; }
+        .lightbox-backdrop.open { opacity: 1; visibility: visible; }
+        .lightbox-modal { width: min(1080px, 100%); max-width: 100%; border-radius: 12px; overflow: hidden; background: #000; box-shadow: 0 40px 120px rgba(0,0,0,0.8); position: relative; }
+        .lightbox-player-wrapper { width: 100%; position: relative; }
+        #nativeLightboxPlayer { width: 100%; height: auto; max-height: 85vh; display: block; outline: none; }
+        
+        video::-webkit-media-controls-volume-slider, video::-webkit-media-controls-mute-button, video::-webkit-media-controls-volume-control-container { display: none !important; }
+        .lightbox-close { position: absolute; right: 15px; top: 15px; z-index: 10; border: 2px solid var(--white); background: rgba(0,0,0,0.65); color: var(--white); width: 40px; height: 40px; border-radius: 50%; font-size: 24px; cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; }
+        .lightbox-close:hover { background: var(--gold); color: var(--black); border-color: var(--gold); transform: scale(1.1); }
+
+        /* KEYPAD MODAL */
+        #keypad-modal { display: none; position: fixed; inset: 0; width: 100vw; height: 100dvh; background: rgba(0,0,0,0.95); z-index: 30000; justify-content: center; align-items: center; flex-direction: column; color: var(--white); padding: 20px; }
+        .keypad-container { background: var(--white); padding: 30px; border: 4px solid var(--gold); text-align: center; border-radius: 8px; width: min(88vw, 420px); }
+        .keypad-display { width: 100%; height: 50px; background: var(--black); color: var(--gold); font-size: 2.2rem; font-family: monospace; font-weight: bold; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; letter-spacing: 5px; border-radius: 4px; }
+        .keypad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .key-btn { background: #e0e0e0; color: var(--black); border: 1px solid #bcbcbc; padding: 15px; font-size: 1.2rem; font-weight: bold; cursor: pointer; border-radius: 4px; min-height: 48px; }
+        .key-btn:hover { background: #ccc; }
+        .key-btn.clear { background: #5a0a0a; color: white; border-color: #3a0808; }
+        .key-btn.enter { background: var(--black); color: var(--gold); border-color: var(--gold); }
+        .close-keypad { margin-top: 20px; color: var(--white); cursor: pointer; text-decoration: underline; font-family: 'Inter', sans-serif; }
+
+        @media (max-width: 768px) {
+            #viewport { perspective: 600px; }
+            .menu-card { width: min(92vw, 520px); padding: 26px 18px; }
+            .menu-title { font-size: 1.6rem; margin-bottom: 10px; }
+            .menu-instructions { font-size: 0.9rem; line-height: 1.5; }
+            #hud-controls { gap: 40px; bottom: 40px; }
+            .keypad-container { width: min(88vw, 360px); padding: 20px; }
+            .keypad-display { font-size: 1.6rem; letter-spacing: 3px; }
+            .key-btn { padding: 14px; font-size: 1.1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="hud-controls">
+        <div id="floating-menu" onclick="openMenuPage()">
+            <button id="sound-toggle" onclick="toggleMainSound(event)">
+                <span id="sound-state">SOUND: OFF</span>
+            </button>
+            <span>THE MENU</span>
+            <div class="menu-dot"></div>
+        </div>
+        
+        <div class="d-pad">
+            <button class="nav-btn btn-up" onclick="moveForward()">↑</button>
+            <button class="nav-btn btn-left" onclick="lookLeft()">←</button>
+            <button class="nav-btn btn-down" onclick="moveBackward()">↓</button>
+            <button class="nav-btn btn-right" onclick="lookRight()">→</button>
+        </div>
+    </div>
+
+    <div id="menu-overlay">
+        <div class="menu-card">
+            <div class="menu-close" onclick="closeMenuPage()">✕</div>
+            <h2 class="menu-title">DIRECTORY</h2>
+            <p class="menu-instructions">
+                Welcome to the EDK Simple Travel Main Directory. Please click the <strong>✕</strong> at the top right to begin exploring our immersive 3D welcoming lobby.<br><br>
+                As you stroll down the hallway, we invite you to explore our eight featured resorts hanging on the walls. Simply click <strong>'Click to Expand'</strong> for a private, enhanced view of each property.<br><br>
+                To select your destination, you may enter through any of the designated doorways. You can also navigate using the floating <strong>Menu Lobby</strong> button at the top of your screen—click it once to reveal our full directory menu, or double-click it at any time to instantly return to this main lobby.
+            </p>
+        </div>
+    </div>
+
+    <div class="lightbox-backdrop" id="lightboxBackdrop">
+        <div class="lightbox-modal">
+            <button class="lightbox-close" id="lightboxClose">×</button>
+            <div class="lightbox-player-wrapper">
+                <video id="nativeLightboxPlayer" controls muted playsinline preload="auto" disableRemotePlayback></video>
+            </div>
+        </div>
+    </div>
+
+    <div id="keypad-modal">
+        <h2 style="font-family: 'Playfair Display', serif; color: var(--gold); letter-spacing: 2px;">SECURE ACCESS</h2>
+        <div class="keypad-container">
+            <div class="keypad-display" id="display">_ _ _ _</div>
+            <div class="keypad-grid">
+                <button class="key-btn" onclick="pressKey('1')">1</button>
+                <button class="key-btn" onclick="pressKey('2')">2</button>
+                <button class="key-btn" onclick="pressKey('3')">3</button>
+                <button class="key-btn" onclick="pressKey('4')">4</button>
+                <button class="key-btn" onclick="pressKey('5')">5</button>
+                <button class="key-btn" onclick="pressKey('6')">6</button>
+                <button class="key-btn" onclick="pressKey('7')">7</button>
+                <button class="key-btn" onclick="pressKey('8')">8</button>
+                <button class="key-btn" onclick="pressKey('9')">9</button>
+                <button class="key-btn clear" onclick="clearKeypad()">CLR</button>
+                <button class="key-btn" onclick="pressKey('0')">0</button>
+                <button class="key-btn enter" onclick="checkCode()">ENT</button>
+            </div>
+        </div>
+        <div class="close-keypad" onclick="closeKeypad()">Cancel & Close</div>
+    </div>
+
+    <div id="viewport">
+        <div id="camera-rig">
+            <div id="world">
+                <div class="item-3d floor"></div>
+                <div class="item-3d ceiling"></div>
+                <div class="item-3d wall-left"></div>
+                <div class="item-3d wall-right"></div>
+                
+                <div class="item-3d wall-back">
+                    <div class="back-video-container">
+                        <video id="vid-sequence-1" class="back-video" muted playsinline preload="auto" disablePictureInPicture>
+                            <source src="https://video.wixstatic.com/video/c6dce8_d1d92b4a529543fabba575111041c6d2/720p/mp4/file.mp4" type="video/mp4" />
+                        </video>
+                        <video id="vid-sequence-2" class="back-video" muted playsinline preload="auto" disablePictureInPicture style="display: none;">
+                            <source src="https://video.wixstatic.com/video/c6dce8_0860432c91bb48b6be0def42eed5ba16/1080p/mp4/file.mp4" type="video/mp4" />
+                        </video>
+                    </div>
+                </div>
+
+                <!-- ================= LEFT WALL ================= -->
+                
+                <div class="item-3d placement art-group" style="--x:-390px; --y:-70px; --z:-400px; --ry:90deg;">
+                    <div class="sconce" onclick="toggleLight(this)"></div>
+                    <div class="resort-tag">Hidden Beach Resort Au Naturel</div>
+                    <div class="wall-picture">
+                         <video src="https://video.wixstatic.com/video/1ff6e8_4d47ed082dcc432dacaaeda416e62a4c/1080p/mp4/file.mp4" autoplay loop muted playsinline disablePictureInPicture class="wall-video-player"></video>
+                    </div>
+                    <button class="expand-btn-oval" data-video-src="https://video.wixstatic.com/video/1ff6e8_4d47ed082dcc432dacaaeda416e62a4c/1080p/mp4/file.mp4">Click to Expand ⛶</button>
+                </div>
+
+                <div class="item-3d door-wrapper left-wall-wrapper placement" style="--x:-395px; --y:90px; --z:-1000px; --ry:90deg;">
+                    <div class="plaque">Book a Cancun Resort</div>
+                    <div class="door-frame"><div class="room-interior"></div></div>
+                    <div class="door-panel" id="door-1" onclick="toggleDoor('door-1', 'https://www.edksimpletravel.net/cancun-getawayluxury-resortsbook-cancun#Bookwithexotic')">
+                        <div class="doorknob"></div>
+                        <div class="glass-panel"><div class="door-edk">EDK</div><div class="door-number">1</div></div>
+                    </div>
+                </div>
+
+                <div class="item-3d placement art-group" style="--x:-390px; --y:-70px; --z:-1600px; --ry:90deg;">
+                    <div class="sconce" onclick="toggleLight(this)"></div>
+                    <div class="resort-tag">El Dorado Royale</div>
+                    <div class="wall-picture">
+                        <video src="https://video.wixstatic.com/video/1ff6e8_7eb50aa5cf8c414e88e31508bc4ccda4/1080p/mp4/file.mp4" autoplay loop muted playsinline disablePictureInPicture class="wall-video-player"></video>
+                    </div>
+                    <button class="expand-btn-oval" data-video-src="https://video.wixstatic.com/video/1ff6e8_7eb50aa5cf8c414e88e31508bc4ccda4/1080p/mp4/file.mp4">Click to Expand ⛶</button>
+                </div>
+
+                <div class="item-3d door-wrapper left-wall-wrapper placement" style="--x:-395px; --y:90px; --z:-2200px; --ry:90deg;">
+                    <div class="plaque">Book your cruise</div>
+                    <div class="door-frame"><div class="room-interior"></div></div>
+                    <div class="door-panel" id="door-2" onclick="toggleDoor('door-2', 'https://www.edksimpletravel.net/best-cruises#Cruisedeals')">
+                        <div class="doorknob"></div>
+                        <div class="glass-panel"><div class="door-edk">EDK</div><div class="door-number">2</div></div>
+                    </div>
+                </div>
+
+                <div class="item-3d placement art-group" style="--x:-390px; --y:-70px; --z:-2800px; --ry:90deg;">
+                    <div class="sconce" onclick="toggleLight(this)"></div>
+                    <div class="resort-tag">El Dorado Seaside</div>
+                    <div class="wall-picture">
+                         <video src="https://video.wixstatic.com/video/1ff6e8_9eb48e25d14a47febcd41b897c9dddee/1080p/mp4/file.mp4" autoplay loop muted playsinline disablePictureInPicture class="wall-video-player"></video>
+                    </div>
+                    <button class="expand-btn-oval" data-video-src="https://video.wixstatic.com/video/1ff6e8_9eb48e25d14a47febcd41b897c9dddee/1080p/mp4/file.mp4">Click to Expand ⛶</button>
+                </div>
+
+                <div class="item-3d door-wrapper left-wall-wrapper placement" style="--x:-395px; --y:90px; --z:-3400px; --ry:90deg;">
+                    <div class="plaque">Book A Flight</div>
+                    <div class="door-frame"><div class="room-interior"></div></div>
+                    <div class="door-panel" id="door-3" onclick="toggleDoor('door-3', 'https://www.edksimpletravel.net/searchengine#BookFlight')">
+                        <div class="doorknob"></div>
+                        <div class="glass-panel"><div class="door-edk">EDK</div><div class="door-number">3</div></div>
+                    </div>
+                </div>
+
+                <div class="item-3d placement art-group" style="--x:-390px; --y:-70px; --z:-4000px; --ry:90deg;">
+                    <div class="sconce" onclick="toggleLight(this)"></div>
+                    <div class="resort-tag">Generations Cancun</div>
+                    <div class="wall-picture">
+                         <video src="https://video.wixstatic.com/video/1ff6e8_b9c7830ef10f46e6b1a9ea41789bfefa/1080p/mp4/file.mp4" autoplay loop muted playsinline disablePictureInPicture class="wall-video-player"></video>
+                    </div>
+                    <button class="expand-btn-oval" data-video-src="https://video.wixstatic.com/video/1ff6e8_b9c7830ef10f46e6b1a9ea41789bfefa/1080p/mp4/file.mp4">Click to Expand ⛶</button>
+                </div>
+
+                <div class="item-3d door-wrapper left-wall-wrapper placement" style="--x:-395px; --y:90px; --z:-4600px; --ry:90deg;">
+                    <div class="plaque">Hotel and car Booking</div>
+                    <div class="door-frame"><div class="room-interior"></div></div>
+                    <div class="door-panel" id="door-4" onclick="toggleDoor('door-4', 'https://www.edksimpletravel.net/searchengine#Searchengine')">
+                        <div class="doorknob"></div>
+                        <div class="glass-panel"><div class="door-edk">EDK</div><div class="door-number">4</div></div>
+                    </div>
+                </div>
+
+                <!-- ================= RIGHT WALL ================= -->
+
+                <div class="item-3d placement art-group" style="--x:390px; --y:-70px; --z:-400px; --ry:-90deg;">
+                    <div class="sconce" onclick="toggleLight(this)"></div>
+                    <div class="resort-tag">El Dorado Maroma</div>
+                    <div class="wall-picture">
+                         <video src="https://video.wixstatic.com/video/1ff6e8_2a86a42aa5b14500abaedddec15fdc7e/1080p/mp4/file.mp4" autoplay loop muted playsinline disablePictureInPicture class="wall-video-player"></video>
+                    </div>
+                    <button class="expand-btn-oval" data-video-src="https://video.wixstatic.com/video/1ff6e8_2a86a42aa5b14500abaedddec15fdc7e/1080p/mp4/file.mp4">Click to Expand ⛶</button>
+                </div>
+
+                <div class="item-3d door-wrapper right-wall-wrapper placement" style="--x:395px; --y:90px; --z:-1000px; --ry:-90deg;">
+                    <div class="plaque">Destination Tours</div>
+                    <div class="door-frame"><div class="room-interior"></div></div>
+                    <div class="door-panel right-wall-door" id="door-5" onclick="toggleDoor('door-5', 'https://www.edksimpletravel.net/searchengine#Newdestinations')">
+                        <div class="doorknob"></div>
+                        <div class="glass-panel"><div class="door-edk">EDK</div><div class="door-number">5</div></div>
+                    </div>
+                </div>
+
+                <div class="item-3d placement art-group" style="--x:390px; --y:-70px; --z:-1600px; --ry:-90deg;">
+                    <div class="sconce" onclick="toggleLight(this)"></div>
+                    <div class="resort-tag">Palafitos Bungalows</div>
+                    <div class="wall-picture">
+                         <video src="https://video.wixstatic.com/video/1ff6e8_4ef021ac23bc4565bc7444bec32f97c8/1080p/mp4/file.mp4" autoplay loop muted playsinline disablePictureInPicture class="wall-video-player"></video>
+                    </div>
+                    <button class="expand-btn-oval" data-video-src="https://video.wixstatic.com/video/1ff6e8_4ef021ac23bc4565bc7444bec32f97c8/1080p/mp4/file.mp4">Click to Expand ⛶</button>
+                </div>
+
+                <div class="item-3d door-wrapper right-wall-wrapper placement" style="--x:395px; --y:90px; --z:-2200px; --ry:-90deg;">
+                    <div class="plaque">Wedding and Events</div>
+                    <div class="door-frame"><div class="room-interior"></div></div>
+                    <div class="door-panel right-wall-door" id="door-6" onclick="toggleDoor('door-6', 'https://www.edksimpletravel.net/destinationwedding#WeddingsandGroups')">
+                        <div class="doorknob"></div>
+                        <div class="glass-panel"><div class="door-edk">EDK</div><div class="door-number">6</div></div>
+                    </div>
+                </div>
+
+                <div class="item-3d placement art-group" style="--x:390px; --y:-70px; --z:-2800px; --ry:-90deg;">
+                    <div class="sconce" onclick="toggleLight(this)"></div>
+                    <div class="resort-tag">Nickelodeon</div>
+                    <div class="wall-picture">
+                         <video src="https://video.wixstatic.com/video/1ff6e8_0b2fbe3aab45472fad484b60963273e5/1080p/mp4/file.mp4" autoplay loop muted playsinline disablePictureInPicture class="wall-video-player"></video>
+                    </div>
+                    <button class="expand-btn-oval" data-video-src="https://video.wixstatic.com/video/1ff6e8_0b2fbe3aab45472fad484b60963273e5/1080p/mp4/file.mp4">Click to Expand ⛶</button>
+                </div>
+
+                <div class="item-3d door-wrapper right-wall-wrapper placement" style="--x:395px; --y:90px; --z:-3400px; --ry:-90deg;">
+                    <div class="plaque">Book a Florida Resort</div>
+                    <div class="door-frame"><div class="room-interior"></div></div>
+                    <div class="door-panel right-wall-door" id="door-7" onclick="toggleDoor('door-7', 'https://www.edksimpletravel.net/edk-usresortspecials#USdestinations')">
+                        <div class="doorknob"></div>
+                        <div class="glass-panel"><div class="door-edk">EDK</div><div class="door-number">7</div></div>
+                    </div>
+                </div>
+
+                <div class="item-3d placement art-group" style="--x:390px; --y:-70px; --z:-4000px; --ry:-90deg;">
+                    <div class="sconce" onclick="toggleLight(this)"></div>
+                    <div class="resort-tag">Casitas Royale</div>
+                    <div class="wall-picture">
+                         <video src="https://video.wixstatic.com/video/1ff6e8_ae6060dc3a184d24a3cce9be99d5cecb/720p/mp4/file.mp4" autoplay loop muted playsinline disablePictureInPicture class="wall-video-player"></video>
+                    </div>
+                    <button class="expand-btn-oval" data-video-src="https://video.wixstatic.com/video/1ff6e8_ae6060dc3a184d24a3cce9be99d5cecb/720p/mp4/file.mp4">Click to Expand ⛶</button>
+                </div>
+
+                <div class="item-3d door-wrapper right-wall-wrapper placement" style="--x:395px; --y:90px; --z:-4600px; --ry:-90deg;">
+                    <div class="plaque">Member VIP Room</div>
+                    <div class="door-frame"><div class="room-interior"></div></div>
+                    <div class="door-panel right-wall-door" id="door-8" onclick="handleSecureDoor('door-8', '1029', 'https://www.edksimpletravel.net/virturalmeeting')">
+                        <div class="doorknob"></div>
+                        <div class="keypad-visual"></div>
+                        <div class="glass-panel"><div class="door-edk">EDK</div><div class="door-number">8</div></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let lightboxBackdrop = null;
+        let lightboxCloseBtn = null;
+        let nativeLightboxPlayer = null;
+
+        function openLightbox(videoSrc) {
+            if (!videoSrc) return;
+            lightboxBackdrop.classList.add('open');
+            nativeLightboxPlayer.src = videoSrc;
+            nativeLightboxPlayer.play().catch(e => console.log("Playback failed", e));
+        }
+
+        function closeLightbox() {
+            lightboxBackdrop.classList.remove('open');
+            if (nativeLightboxPlayer) {
+                nativeLightboxPlayer.pause();
+                nativeLightboxPlayer.src = ""; 
+            }
+        }
+
+        window.addEventListener('load', () => {
+            updateCamera();
+
+            lightboxBackdrop = document.getElementById('lightboxBackdrop');
+            lightboxCloseBtn = document.getElementById('lightboxClose');
+            nativeLightboxPlayer = document.getElementById('nativeLightboxPlayer');
+
+            document.querySelectorAll('video').forEach(vid => {
+                vid.addEventListener('loadedmetadata', () => {
+                    if (vid.textTracks) {
+                        for (let i = 0; i < vid.textTracks.length; i++) {
+                            vid.textTracks[i].mode = 'hidden';
+                        }
+                    }
+                });
+            });
+
+            const expandButtons = document.querySelectorAll('.expand-btn-oval');
+            expandButtons.forEach(button => {
+                button.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    const videoSrc = button.getAttribute('data-video-src');
+                    if (videoSrc) openLightbox(videoSrc);
+                });
+            });
+
+            lightboxCloseBtn.addEventListener('click', closeLightbox);
+            lightboxBackdrop.addEventListener('click', (event) => {
+                if (event.target === lightboxBackdrop) closeLightbox();
+            });
+
+            window.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') closeLightbox();
+            });
+
+            const seq1 = document.getElementById('vid-sequence-1');
+            const seq2 = document.getElementById('vid-sequence-2');
+
+            seq1.play().catch(err => console.log('Intro video autoplay blocked:', err));
+
+            seq1.addEventListener('ended', () => {
+                seq1.style.display = 'none';
+                seq2.style.display = 'block';
+                seq2.currentTime = 0;
+                seq2.play();
+            });
+
+            seq2.addEventListener('ended', () => {
+                seq2.style.display = 'none';
+                seq1.style.display = 'block';
+                seq1.currentTime = 0;
+                seq1.play();
+            });
+        });
+
+        let isMainMuted = true;
+        function toggleMainSound(event) {
+            if(event) event.stopPropagation();
+            isMainMuted = !isMainMuted;
+            const seq1 = document.getElementById('vid-sequence-1');
+            const seq2 = document.getElementById('vid-sequence-2');
+            seq1.muted = isMainMuted;
+            seq2.muted = isMainMuted;
+            document.getElementById('sound-state').innerText = isMainMuted ? 'SOUND: OFF' : 'SOUND: ON';
+        }
+
+        function openMenuPage() {
+            const menu = document.getElementById('menu-overlay');
+            menu.style.display = 'flex';
+            setTimeout(() => {
+                menu.style.opacity = '1';
+                menu.classList.add('active');
+            }, 50);
+        }
+
+        function closeMenuPage() {
+            const menu = document.getElementById('menu-overlay');
+            menu.style.opacity = '0';
+            menu.classList.remove('active');
+            setTimeout(() => { menu.style.display = 'none'; }, 500);
+        }
+
+        // --- NEW CURTAIN REDIRECT LOGIC ---
+        let isTransitioning = false;
+
+        function triggerSafely(url) {
+            if (isTransitioning) return;
+            isTransitioning = true;
+            window.parent.postMessage({ type: "door_redirect", url: url }, "*");
+        }
+
+        let redirectTimeout;
+
+        function toggleDoor(doorId, url) {
+            if (isTransitioning) return; 
+            
+            const doorElement = document.getElementById(doorId);
+            doorElement.classList.add('open');
+            
+            // Wait for 1 second of the door swinging, then trigger the curtain drop in Wix
+            redirectTimeout = setTimeout(() => { triggerSafely(url); }, 1000);
+        }
+
+        let currentCode = "";
+        let expectedCode = "";
+        let activeDoorId = "";
+        let destinationUrl = "";
+
+        function handleSecureDoor(doorId, code, targetUrl) {
+            if (isTransitioning) return; 
+
+            const doorElement = document.getElementById(doorId);
+            if (doorElement.classList.contains('open')) {
+                doorElement.classList.remove('open');
+                clearTimeout(redirectTimeout);
+            } else {
+                expectedCode = code;
+                activeDoorId = doorId;
+                destinationUrl = targetUrl; 
+                currentCode = "";
+                updateDisplay();
+                document.getElementById('keypad-modal').style.display = 'flex';
+            }
+        }
+
+        function closeKeypad() { document.getElementById('keypad-modal').style.display = 'none'; }
+        function pressKey(num) {
+            if (currentCode.length < 4) { currentCode += num; updateDisplay(); }
+        }
+        function clearKeypad() { currentCode = ""; updateDisplay(); }
+        function updateDisplay() {
+            document.getElementById('display').innerText = currentCode.padEnd(4, '_').split('').join(' ');
+        }
+        
+        function checkCode() {
+            const display = document.getElementById('display');
+            if (currentCode === expectedCode) {
+                display.innerText = 'OPEN';
+                display.style.background = '#fff'; display.style.color = '#000';
+                
+                setTimeout(() => {
+                    closeKeypad();
+                    display.style.background = '#050505'; display.style.color = '#d4af37';
+                    const doorElement = document.getElementById(activeDoorId);
+                    doorElement.classList.add('open');
+                    
+                    redirectTimeout = setTimeout(() => { triggerSafely(destinationUrl); }, 1000);
+                }, 800);
+            } else {
+                display.innerText = 'ERR';
+                display.style.color = '#ff4444';
+                setTimeout(() => { clearKeypad(); display.style.color = '#d4af37'; }, 800);
+            }
+        }
+
+        function toggleLight(el) { el.classList.toggle('off'); }
+
+        let cameraZ = -300;
+        let panY = 0;
+
+        function updateCamera() {
+            const world = document.getElementById('world');
+            const cameraRig = document.getElementById('camera-rig');
+            const yOffset = window.innerWidth <= 768 ? -20 : -50;
+            world.style.transform = `translate3d(0, ${yOffset}px, ${-cameraZ}px)`;
+            cameraRig.style.transform = `rotateY(${-panY}deg)`;
+        }
+
+        function moveForward() { 
+            cameraZ -= 600; 
+            if (cameraZ < -5500) cameraZ = -5500; 
+            updateCamera(); 
+        }
+        
+        // --- FIXED CAMERA BOUNDARY SO YOU CAN'T FALL OUT THE BACK ---
+        function moveBackward() { 
+            cameraZ += 600; 
+            // The absolute limit is now -300 (the exact entrance of the room)
+            if (cameraZ > -300) cameraZ = -300; 
+            updateCamera(); 
+        }
+        
+        function lookLeft() { 
+            panY -= 15;
+            if (panY < -25) panY = -25;
+            updateCamera(); 
+        }
+        
+        function lookRight() { 
+            panY += 15;
+            if (panY > 25) panY = 25;
+            updateCamera(); 
+        }
+
+        window.addEventListener('resize', updateCamera);
+
+        // ✨ CRASH-PROOF AUTO-POPUP ✨
+        document.addEventListener("DOMContentLoaded", function() {
+            setTimeout(() => {
+                if (typeof openMenuPage === "function") {
+                    openMenuPage();
+                }
+            }, 800);
+        });
+    </script>
+</body>
+</html>
